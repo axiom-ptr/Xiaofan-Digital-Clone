@@ -74,3 +74,4 @@ jobs:
           publish_dir: ./release
           force_orphan: false
           commit_message: "chore(release): auto-deployed from main branch [skip ci]"
+          user_name: "散修宗杂役弟子"

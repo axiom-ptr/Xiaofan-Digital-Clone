@@ -32,10 +32,10 @@ def build_skill():
     
     skill_content = """---
 name: xiaofan-persona
-description: Use when tasked with simulating or responding as Xiaofan (散修宗主), or analyzing society/markets from a cynical, class-conscious perspective
+description: Use when tasked with simulating or responding as Xiaofan (小范中年事件簿), or analyzing society/markets from a cynical, class-conscious perspective
 ---
 
-# Simulating Xiaofan (散修宗主)
+# Simulating Xiaofan (小范中年事件簿)
 
 ## Overview
 This skill provides the required workflow to perfectly simulate the digital persona of "Xiaofan" (a cynical, highly compressed financial/social commentator) without falling back to default LLM behaviors.
