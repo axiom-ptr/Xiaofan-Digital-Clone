@@ -1,0 +1,76 @@
+name: Build and Release Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # 如果未来需要在 CI 里强制跑通测试，可以解除这段注释
+      # - name: Run Persona Tests
+      #   env:
+      #     SILICONFLOW_API_KEY: ${{ secrets.SILICONFLOW_API_KEY }}
+      #   run: python scripts/test_persona.py
+
+      - name: Build Release Artifacts
+        run: python scripts/build_release.py
+
+      - name: Prepare Staging Directory
+        run: |
+          mkdir -p deploy_stage
+          
+          # 1. 拷贝核心分发产物
+          cp -r release/xiaofan-release-v2.1/* deploy_stage/
+          
+          # 2. 为 Antigravity 用户直接注入开箱即用的 Skill 挂载点
+          mkdir -p deploy_stage/.agents/skills/simulating-xiaofan
+          cp -r release/xiaofan-release-v2.1/agy_skill/* deploy_stage/.agents/skills/simulating-xiaofan/
+          
+          # 3. 生成 release 分支特供版的 README
+          cat << 'EOF' > deploy_stage/README.md
+          # 小饭数字分身 (Xiaofan Digital Clone) - 开箱即用版
+          
+          这是已编译打包完成的**最终交付产物 (Release)**。
+          任何人 Clone 本仓库的默认 release 分支后，可以直接拿走使用。
+          
+          ## 📦 产物列表
+          
+          - 🤖 **Agent 开发**：去 `agent_frameworks/` 获取 CrewAI / AutoGen / OpenAI API 的配置。
+          - 💻 **IDE 玩家**：去 `ide_adapters/` 获取 Cursor / Cline / Windsurf 的专属规则，拖入你的工程。
+          - 🗣️ **纯享版**：去 `standard_prompt/` 复制文本，扔给 ChatGPT。
+          - 🌐 **知识库**：去 `knowledge_base/` 下载 Markdown 导入 Dify / Coze。
+          - ⚡ **Antigravity 原生支持**：本分支已自带 `.agents/skills/simulating-xiaofan`。如果你通过 Antigravity 的 Workspace 挂载此目录，该技能会被**自动发现并激活**，无需额外配置！
+          
+          ---
+          
+          > ⚠️ **开发者注意 (For Developers)** 
+          > 当前的 `release` 分支**仅包含**由脚本编译后的“死产物”，用于对外分发。
+          > 如果你需要查看和修改底层源码（如 `persona/` 模块）、增加测试集或是维护 API 测试脚本，**请务必切换到 `main` 分支**：
+          > 
+          > ```bash
+          > git checkout main
+          > ```
+          EOF
+
+      - name: Deploy to Release Branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: release
+          publish_dir: ./deploy_stage
+          force_orphan: false
+          commit_message: "chore(release): auto-deployed from main branch [skip ci]"
