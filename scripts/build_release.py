@@ -16,10 +16,6 @@ RELEASE_DIR = REPO_ROOT / "release"
 
 # 扁平化的直接目标目录
 SKILL_DIR = RELEASE_DIR / "simulating-xiaofan"
-CURSOR_DIR = RELEASE_DIR / "cursor"
-CLINE_DIR = RELEASE_DIR / "cline"
-WINDSURF_DIR = RELEASE_DIR / "windsurf"
-GITHUB_DIR = RELEASE_DIR / "github"
 
 OPENAI_DIR = RELEASE_DIR / "openai"
 CREWAI_DIR = RELEASE_DIR / "crewai"
@@ -29,8 +25,7 @@ STD_DIR = RELEASE_DIR / "standard_prompt"
 KB_DIR = RELEASE_DIR / "knowledge_base"
 
 ALL_DIRS = [
-    SKILL_DIR, CURSOR_DIR, CLINE_DIR, WINDSURF_DIR, GITHUB_DIR,
-    OPENAI_DIR, CREWAI_DIR, AUTOGEN_DIR, STD_DIR, KB_DIR
+    SKILL_DIR, OPENAI_DIR, CREWAI_DIR, AUTOGEN_DIR, STD_DIR, KB_DIR
 ]
 
 def setup_directories():
@@ -41,8 +36,8 @@ def setup_directories():
         d.mkdir(parents=True, exist_ok=True)
     print(f"✅ 创建发布目录: {RELEASE_DIR}")
 
-def build_agy_skill():
-    """打包 Antigravity 专属 Skill (扁平结构)"""
+def build_skill():
+    """打包原生 Skill (扁平结构)"""
     shutil.copy(REPO_ROOT / "dist" / "Prompt_System.md", SKILL_DIR / "Prompt_System.md")
     shutil.copy(REPO_ROOT / "identity" / "canonical_principles.md", SKILL_DIR / "canonical_principles.md")
     shutil.copy(REPO_ROOT / "FAILURE_MODES.md", SKILL_DIR / "FAILURE_MODES.md")
@@ -86,7 +81,7 @@ When invoked to simulate Xiaofan, you MUST execute the following steps in your i
 """
     with open(SKILL_DIR / "SKILL.md", "w", encoding="utf-8") as f:
         f.write(skill_content)
-    print("✅ 打包 Antigravity 原生 Skill (simulating-xiaofan/)")
+    print("✅ 打包原生 Skill (simulating-xiaofan/)")
 
 def build_standard_prompt():
     """打包给普通用户的通用单文件 Prompt"""
@@ -136,22 +131,6 @@ def build_knowledge_base():
     with open(KB_DIR / "knowledge_vocabulary_and_quotes.md", "w", encoding="utf-8") as f:
         f.write(corpus_text)
     print("✅ 打包平台知识库语料 (knowledge_base/)")
-
-def build_ide_adapters():
-    """打包适配各种主流 AI IDE"""
-    with open(REPO_ROOT / "dist" / "Prompt_System.md", "r", encoding="utf-8") as f:
-        prompt = f.read()
-    with open(REPO_ROOT / "identity" / "canonical_principles.md", "r", encoding="utf-8") as f:
-        principles = f.read()
-    
-    base_rules = f"{prompt}\n\n## 强制世界观\n{principles}"
-    
-    with open(CURSOR_DIR / ".cursorrules", "w", encoding="utf-8") as f: f.write(base_rules)
-    with open(GITHUB_DIR / "copilot-instructions.md", "w", encoding="utf-8") as f: f.write(base_rules)
-    with open(CLINE_DIR / ".clinerules", "w", encoding="utf-8") as f: f.write(base_rules)
-    with open(WINDSURF_DIR / ".windsurfrules", "w", encoding="utf-8") as f: f.write(base_rules)
-
-    print("✅ 打包主流 IDE 适配文件夹 (cursor/, cline/, 等)")
 
 def build_agent_frameworks():
     """打包适配业界主流 Agent 框架"""
@@ -241,7 +220,6 @@ def validate_artifacts():
         SKILL_DIR / "SKILL.md",
         SKILL_DIR / "Prompt_System.md",
         STD_DIR / "Xiaofan_Full_Prompt.txt",
-        CURSOR_DIR / ".cursorrules",
         OPENAI_DIR / "openai_assistant.json",
         RELEASE_DIR / "build-info.json",
         RELEASE_DIR / "checksums.json"
@@ -264,10 +242,9 @@ def validate_artifacts():
 def main():
     print("🚀 开始构建多平台分发包...")
     setup_directories()
-    build_agy_skill()
+    build_skill()
     build_standard_prompt()
     build_knowledge_base()
-    build_ide_adapters()
     build_agent_frameworks()
     generate_build_manifest()
     generate_checksums()

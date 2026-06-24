@@ -55,7 +55,6 @@ jobs:
           ## 📦 产物列表
           
           - 🤖 **Agent 开发**：去 `openai/` / `crewai/` / `autogen/` 获取框架配置。
-          - 💻 **IDE 玩家**：去 `cursor/` / `cline/` / `windsurf/` 获取专属规则，拖入你的工程。
           - 🗣️ **纯享版**：去 `standard_prompt/` 复制文本，扔给 ChatGPT。
           - 🌐 **知识库**：去 `knowledge_base/` 下载 Markdown 导入 Dify / Coze。
           - ⚡ **Antigravity 原生支持**：本分支已自带 `simulating-xiaofan/` 技能目录。直接将该目录复制到你的 `~/.gemini/config/skills/` 下即可！
