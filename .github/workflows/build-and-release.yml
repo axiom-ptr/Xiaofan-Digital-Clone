@@ -47,27 +47,23 @@ jobs:
       - name: Prepare README for Release Branch
         run: |
           cat << 'EOF' > release/README.md
-          # 小饭数字分身 (Xiaofan Digital Clone) - 开箱即用版
+          # 小饭数字分身 (Xiaofan Digital Clone)
           
-          这是已编译打包完成的**最终交付产物 (Release)**。
-          任何人 Clone 本仓库的默认 release 分支后，可以直接拿走使用。
+          这是自动编译生成的发布产物 (Release)。
           
-          ## 📦 产物列表
+          ## 📦 如何使用
           
-          - 🤖 **Agent 开发**：去 `openai/` / `crewai/` / `autogen/` 获取框架配置。
-          - 🗣️ **纯享版**：去 `standard_prompt/` 复制文本，扔给 ChatGPT。
-          - 🌐 **知识库**：去 `knowledge_base/` 下载 Markdown 导入 Dify / Coze。
-          - ⚡ **Antigravity 原生支持**：本分支已自带 `simulating-xiaofan/` 技能目录。直接将该目录复制到你的 `~/.gemini/config/skills/` 下即可！
+          本分支仅包含最纯净的 **数字人格 Skill 包**。
+          - 复制 `simulating-xiaofan/` 整个目录。
+          - 如果你使用 Antigravity，直接将其拖入 `~/.gemini/config/skills/` 下即可自动识别并使用！
+          - 如果你使用其他 AI Agent 框架，可以直接重命名该目录并读取其内部的 `.md` 文件作为人格资产。
           
           ---
           
-          > ⚠️ **开发者注意 (For Developers)** 
-          > 当前的 `release` 分支**仅包含**由脚本编译后的“死产物”，用于对外分发。
-          > 如果你需要查看和修改底层源码（如 `persona/` 模块）、增加测试集或是维护 API 测试脚本，**请务必切换到 `main` 分支**：
-          > 
-          > ```bash
-          > git checkout main
-          > ```
+          > ⚠️ **源码去哪了？** 
+          > 当前的 `release` 分支**仅包含**最终分发产物。
+          > 如需查看核心逻辑或增添语料，请切换至 `main` 分支进行开发：
+          > `git checkout main`
           EOF
 
       - name: Deploy to Release Branch

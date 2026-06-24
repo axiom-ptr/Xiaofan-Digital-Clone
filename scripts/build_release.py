@@ -14,30 +14,18 @@ from datetime import datetime
 REPO_ROOT = Path(__file__).parent.parent
 RELEASE_DIR = REPO_ROOT / "release"
 
-# 扁平化的直接目标目录
+# 极简产物目录：只保留核心的 Skill 目录
 SKILL_DIR = RELEASE_DIR / "simulating-xiaofan"
-
-OPENAI_DIR = RELEASE_DIR / "openai"
-CREWAI_DIR = RELEASE_DIR / "crewai"
-AUTOGEN_DIR = RELEASE_DIR / "autogen"
-
-STD_DIR = RELEASE_DIR / "standard_prompt"
-KB_DIR = RELEASE_DIR / "knowledge_base"
-
-ALL_DIRS = [
-    SKILL_DIR, OPENAI_DIR, CREWAI_DIR, AUTOGEN_DIR, STD_DIR, KB_DIR
-]
 
 def setup_directories():
     if RELEASE_DIR.exists():
         shutil.rmtree(RELEASE_DIR)
     
-    for d in ALL_DIRS:
-        d.mkdir(parents=True, exist_ok=True)
+    SKILL_DIR.mkdir(parents=True, exist_ok=True)
     print(f"✅ 创建发布目录: {RELEASE_DIR}")
 
 def build_skill():
-    """打包原生 Skill (扁平结构)"""
+    """打包原生 Skill (极简扁平结构)"""
     shutil.copy(REPO_ROOT / "dist" / "Prompt_System.md", SKILL_DIR / "Prompt_System.md")
     shutil.copy(REPO_ROOT / "identity" / "canonical_principles.md", SKILL_DIR / "canonical_principles.md")
     shutil.copy(REPO_ROOT / "FAILURE_MODES.md", SKILL_DIR / "FAILURE_MODES.md")
@@ -81,104 +69,7 @@ When invoked to simulate Xiaofan, you MUST execute the following steps in your i
 """
     with open(SKILL_DIR / "SKILL.md", "w", encoding="utf-8") as f:
         f.write(skill_content)
-    print("✅ 打包原生 Skill (simulating-xiaofan/)")
-
-def build_standard_prompt():
-    """打包给普通用户的通用单文件 Prompt"""
-    with open(REPO_ROOT / "dist" / "Prompt_System.md", "r", encoding="utf-8") as f:
-        prompt = f.read()
-    with open(REPO_ROOT / "identity" / "canonical_principles.md", "r", encoding="utf-8") as f:
-        principles = f.read()
-    with open(REPO_ROOT / "FAILURE_MODES.md", "r", encoding="utf-8") as f:
-        failures = f.read()
-
-    try:
-        build_date = subprocess.check_output(['git', 'show', '-s', '--format=%cd', '--date=short', 'HEAD']).decode('utf-8').strip()
-    except Exception:
-        build_date = datetime.now().strftime('%Y-%m-%d')
-
-    full_prompt = f"""# 小饭 (Fan Zong) - 散修宗主数字分身系统提示词
-版本: v2.1
-发布时间: {build_date}
-
-请将以下所有内容作为你的全局 System Prompt：
-
-{prompt}
-
-## 核心世界观 (必须严格遵守)
-{principles}
-
-## 绝对禁止的失败模式 (Redlines)
-{failures}
-"""
-    with open(STD_DIR / "Xiaofan_Full_Prompt.txt", "w", encoding="utf-8") as f:
-        f.write(full_prompt)
-    print("✅ 打包单文件纯文本提示词 (standard_prompt/)")
-
-def build_knowledge_base():
-    """打包供给 Coze/Dify 等 RAG 平台使用的知识库语料"""
-    shutil.copy(REPO_ROOT / "knowledge" / "macro_2024.md", KB_DIR / "knowledge_macro_2024.md")
-    
-    corpus_text = "# 小饭经典语录与黑话知识库\n\n"
-    for json_file in sorted((REPO_ROOT / "data" / "raw_extractions").glob("*.json")):
-        with open(json_file, "r", encoding="utf-8") as f:
-            try:
-                data = json.load(f)
-                corpus_text += f"## 来源: {json_file.name}\n```json\n{json.dumps(data, ensure_ascii=False, indent=2)}\n```\n\n"
-            except:
-                pass
-                
-    with open(KB_DIR / "knowledge_vocabulary_and_quotes.md", "w", encoding="utf-8") as f:
-        f.write(corpus_text)
-    print("✅ 打包平台知识库语料 (knowledge_base/)")
-
-def build_agent_frameworks():
-    """打包适配业界主流 Agent 框架"""
-    with open(REPO_ROOT / "dist" / "Prompt_System.md", "r", encoding="utf-8") as f:
-        prompt = f.read()
-    with open(REPO_ROOT / "identity" / "canonical_principles.md", "r", encoding="utf-8") as f:
-        principles = f.read()
-    with open(REPO_ROOT / "FAILURE_MODES.md", "r", encoding="utf-8") as f:
-        failures = f.read()
-        
-    full_instructions = f"{prompt}\n\n## 强制世界观\n{principles}\n\n## 绝对禁止的失败模式\n{failures}"
-
-    openai_config = {
-        "name": "Xiaofan (散修宗主)",
-        "instructions": full_instructions,
-        "model": "gpt-4o",
-        "description": "极度冷血、基于阶层博弈和容错率视角的社会/金融评论家",
-        "temperature": 0.7
-    }
-    with open(OPENAI_DIR / "openai_assistant.json", "w", encoding="utf-8") as f:
-        json.dump(openai_config, f, ensure_ascii=False, indent=2)
-
-    crewai_yaml = f"""xiaofan_agent:
-  role: >
-    社会/金融评论家（散修宗主）
-  goal: >
-    用绝对冷血的阶层博弈和容错率视角，撕碎所有的温情脉脉，给出最直接残酷的社会真相。
-  backstory: >
-    你是一个在 A股 摸爬滚打、经历过北京金融圈毒打的独立交易员。你痛恨大厂的螺丝钉文化，看透了富人试错与穷人当缓冲带的零和博弈本质。
-  instructions: |
-"""
-    indented_instructions = "\n".join(["    " + line for line in full_instructions.splitlines()])
-    with open(CREWAI_DIR / "crewai_agent.yaml", "w", encoding="utf-8") as f:
-        f.write(crewai_yaml + indented_instructions)
-
-    autogen_py = f"""# AutoGen Agent Configuration
-xiaofan_agent_config = {{
-    "name": "Xiaofan",
-    "system_message": \"\"\"{full_instructions}\"\"\",
-    "llm_config": {{
-        "temperature": 0.7,
-    }}
-}}
-"""
-    with open(AUTOGEN_DIR / "autogen_agent.py", "w", encoding="utf-8") as f:
-        f.write(autogen_py)
-
-    print("✅ 打包主流 Agent 框架配置 (openai/, crewai/, 等)")
+    print("✅ 打包极简核心 Skill (simulating-xiaofan/)")
 
 def generate_build_manifest():
     """生成构建清单文件 (Build Manifest)"""
@@ -219,8 +110,8 @@ def validate_artifacts():
     required_files = [
         SKILL_DIR / "SKILL.md",
         SKILL_DIR / "Prompt_System.md",
-        STD_DIR / "Xiaofan_Full_Prompt.txt",
-        OPENAI_DIR / "openai_assistant.json",
+        SKILL_DIR / "canonical_principles.md",
+        SKILL_DIR / "FAILURE_MODES.md",
         RELEASE_DIR / "build-info.json",
         RELEASE_DIR / "checksums.json"
     ]
@@ -228,24 +119,12 @@ def validate_artifacts():
         assert file_path.exists(), f"❌ 构建异常：缺失关键产物 {file_path}"
         assert file_path.stat().st_size > 50, f"❌ 构建异常：产物 {file_path} 内容过小或为空！"
         
-    with open(STD_DIR / "Xiaofan_Full_Prompt.txt", "r", encoding="utf-8") as f:
-        content = f.read()
-        assert "小饭" in content, "❌ 构建异常：Prompt_System 中丢失核心人物设定！"
-        assert "散修" in content, "❌ 构建异常：Prompt_System 中丢失核心阶层设定！"
-        
-    with open(OPENAI_DIR / "openai_assistant.json", "r", encoding="utf-8") as f:
-        data = json.load(f)
-        assert data.get("name") == "Xiaofan (散修宗主)", "❌ 构建异常：OpenAI Assistant 名字解析错误！"
-        
     print("✅ 产物完整性及可用性 Smoke Test 校验通过！")
 
 def main():
-    print("🚀 开始构建多平台分发包...")
+    print("🚀 开始构建极简分发包...")
     setup_directories()
     build_skill()
-    build_standard_prompt()
-    build_knowledge_base()
-    build_agent_frameworks()
     generate_build_manifest()
     generate_checksums()
     validate_artifacts()
