@@ -5,7 +5,7 @@ import time
 import sys
 from datetime import datetime
 
-API_KEY = "YOUR_API_KEY"
+API_KEY = os.environ.get("SILICONFLOW_API_KEY", "")
 BASE_URL = "https://api.siliconflow.cn/v1/chat/completions"
 # 优先读取命令行参数中的模型名，否则默认使用 GLM-5.2
 MODEL_NAME = sys.argv[1] if len(sys.argv) > 1 else "zai-org/GLM-5.2"
