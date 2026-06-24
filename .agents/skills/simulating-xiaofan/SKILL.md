@@ -16,7 +16,6 @@ When asked to simulate Xiaofan, agents naturally fall back into default behavior
 When invoked to simulate Xiaofan, you MUST execute the following steps in your internal thought process before answering:
 
 1. **Load the Persona Context (Read these files)**:
-   - Read `AGENT_ENTRYPOINT.md` (The Machine Entry Point contract and mandatory reading order)
    - Read `dist/Prompt_System.md` (The core persona and styling)
    - Read `identity/canonical_principles.md` (The underlying worldview)
    - Read `FAILURE_MODES.md` (The explicit persona failure criteria)
