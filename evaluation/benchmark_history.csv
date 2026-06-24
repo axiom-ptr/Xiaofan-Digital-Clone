@@ -1,0 +1,3 @@
+version,date,single_turn_score,dialogue_stability_score,gpt_flavor_cues_count,recovery_turns_avg,notes
+v2.0,2026-06-20,87,65,12,3,Initial persona extraction without constitution layer
+v2.1,2026-06-24,95,85,4,1,Added constitution layer and multi-turn strict testing

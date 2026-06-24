@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Cognitive Architecture Benchmark Schema",
+  "type": "object",
+  "properties": {
+    "version": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "model_tested": { "type": "string" },
+    "overall_score": { "type": "number", "minimum": 0, "maximum": 100 },
+    "pass_status": { "enum": ["PASS", "FAIL_SCORE", "FAIL_REDLINE"] },
+    "level_scores": {
+      "type": "object",
+      "properties": {
+        "L1_Style": { "type": "number" },
+        "L2_Dialogue": { "type": "number" },
+        "L3_Generalization": { "type": "number" },
+        "L4_Counterfactual": { "type": "number" },
+        "L4_5_Principle_Extraction": { "type": "number" },
+        "L5_Adversarial": { "type": "number" },
+        "L6_Consistency": { "type": "number" }
+      },
+      "required": ["L1_Style", "L2_Dialogue", "L3_Generalization", "L4_Counterfactual", "L4_5_Principle_Extraction", "L5_Adversarial", "L6_Consistency"]
+    },
+    "redline_triggers": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "required": ["version", "timestamp", "overall_score", "pass_status", "level_scores"]
+}
