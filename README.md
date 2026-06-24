@@ -1,14 +1,14 @@
-# 小饭数字分身 (Xiaofan Digital Clone) — 数字人格操作系统 v2.1
+# 小饭数字分身 (Xiaofan Digital Clone) — 跨平台数字人格系统 v2.1
 
-## Entry Points
+## Entry Points (入口指南)
 
-**Human Users:**
-Read `README.md`
+**👤 For Human Users (人类用户):**
+请直接跳至 [2. 如何使用 (How to Use)](#2-如何使用-how-to-use)。
 
-**AI Agents:**
-**STOP.**
-Read `AGENT_ENTRYPOINT.md` first.
-Then read `Agent_Framework/RFCs/`.
+**🤖 For AI Agents (给接入此仓库的 AI 助手):**
+**STOP.** 停下你目前的常规思考模式。
+- 如果 User 要求你**“安装小饭”、“把当前环境配置为小饭”**：请立即跳转至 [4. 给 AI 助手的自动安装指南](#4-给-ai-助手的自动安装指南-for-ai-agents-installation-guide)。
+- 如果 User 要求你**“修改代码/开发本仓库”**：请严禁直接动手，必须先完整阅读本仓库根目录的 `AGENT_ENTRYPOINT.md` 和 `Agent_Framework/RFCs/`。
 
 ---
 
@@ -16,126 +16,77 @@ Then read `Agent_Framework/RFCs/`.
 
 本项目是一个针对B站内容创作者"小饭（散修宗主）"的 **AI人格克隆与知识蒸馏库**。
 
-v2.1 在 v2.0 的基础上，从"高级 Prompt 仓库"升级为可持续维护的**数字人格操作系统**：模块化人格层、时效知识层、Anti-GPT Benchmark、80题测试集、自动构建脚本、版本治理。
+它的核心理念是：拒绝当前主流 AI 助手那种“温和、端水、爱讲大道理煲鸡汤”的硅谷精英调性。通过深度提取小饭的语料体系，为用户提供一个**极度冷血、基于阶层博弈和容错率视角、看透不说透的黑色幽默**的数字灵魂。
+
+v2.1 引入了全自动的跨平台分发工具 `build_release.py`，支持将车间里的底层逻辑一键导出为通用 Prompt、IDE 结对编程助手配置、知识库及多智能体框架代码。
 
 ---
 
-## 2. 仓库结构 (Directory Structure)
+## 2. 如何使用 (How to Use)
 
+如果你刚刚把这个仓库 clone 到本地硬盘，想要立刻体验“小饭的毒打”，**你不需要关心仓库里复杂的代码和 json**。
+
+你只需要在终端执行这一句命令：
+```bash
+python scripts/build_release.py
 ```
+
+执行完毕后，仓库里会生成一个金光闪闪的 `release/xiaofan-release-v2.1/` 文件夹。根据你的具体使用场景，拿走你需要的产品：
+
+| 你的场景 | 去哪个文件夹拿 | 怎么用 |
+|---|---|---|
+| **普通聊天** (想在 ChatGPT/Kimi/Claude 里对话) | `standard_prompt/` | 打开 `Xiaofan_Full_Prompt.txt`，全选复制，粘贴进新建对话的“系统提示词”中。 |
+| **编程写代码** (用 Cursor / Windsurf / Cline / Copilot) | `ide_adapters/` | 找到你用的 IDE 的对应文件（例如 `.cursorrules` 或 `.clinerules`），直接把它拖入你写代码的工程根目录。你的代码从此将被小饭狠狠锐评。 |
+| **做多智能体开发** (用 CrewAI / AutoGen / OpenAI) | `agent_frameworks/` | 里面有现成的 yaml、json 和 python 字典，直接 `import` 进你的代码里，一键拉起一个满血的小饭 Agent。 |
+| **做自己的知识库 Bot** (用 Coze / Dify / FastGPT) | `knowledge_base/` | 把里面的 markdown 文件传进平台的 RAG 知识库，让你的 Bot 拥有极强的时效宏观知识和黑话能力。 |
+
+---
+
+## 3. 兵工厂结构 (Factory Structure)
+
+本仓库的源码本质上是一个**生产与测试的兵工厂**。不建议用户直接手动拼装，请一律使用上述的 `build_release.py` 导出。
+
+```text
 Xiaofan-Digital-Clone/
 │
-├── persona/                     # 🧩 人格模块层（永久有效，修改需回归测试）
-│   ├── 01_core_persona.md       # 身份、前史履历、特定人物映射
-│   ├── 02_worldview.md          # 核心价值观、渣男战法、宏观批判
-│   ├── 03_vocabulary.md         # 黑话词库、直播口癖、实录语料、防串戏词汇表
-│   ├── 04_anti_ai_pattern.md    # 防AI化规则、禁用词、禁用句式、禁用排版
-│   └── 05_output_style.md       # 思维框架、物理断句排版要求
-│
-├── knowledge/                   # 📅 知识时效层（可随时间更新，不影响人格层）
-│   ├── README.md                # 知识层维护规范
-│   └── macro_2024.md            # 2024年宏观观点快照
-│
-├── dist/                        # 🚀 运行层（由构建脚本生成，勿手动编辑）
-│   └── Prompt_System.md         # ⭐ 最终运行版 System Prompt
-│
-├── tests/                       # 🔬 评测与测试层
-│   ├── test_cases.json          # 原始15题（保留兼容性）
-│   ├── test_cases_extended.json # 扩展80题（推荐使用，含溯源字段）
-│   ├── anti_gpt.json            # Anti-GPT Benchmark（专测AI味渗漏）
-│   ├── TESTING.md               # 测试指南（含评测权重和两阶段流程）
-│   └── xiaofan_persona_test_report.md  # V2.0 手工测试历史报告（归档）
+├── persona/                     # 🧩 人格模块层（永久有效，源材料）
+├── knowledge/                   # 📅 知识时效层（纯文本语料）
+├── data/raw_extractions/        # 🗄️ 视频与历史切片提取的 JSON 源数据
 │
 ├── scripts/
-│   └── test_persona.py          # 自动化跑分脚本模板
+│   ├── run_siliconflow_eval.py  # 连接云端大模型 API 跑分的自动化评测台
+│   └── build_release.py         # ⭐ 跨平台分发打包工具
 │
-├── Agent_Framework/
-│   └── RFCs/                    # Agent 架构底层宪法
+├── evaluation/                  # 📊 评测体系
+│   ├── monthly_reports/         # 多模型横向对抗盲测（Model Showdown）测试报告落盘
+│   └── failure_archive/         # 记录模型崩塌案例（如被对齐机制洗脑煲鸡汤的失败案例）
 │
-├── build_prompt.py              # 🔨 Prompt 构建脚本（拼接 persona/ → dist/）
-├── CHANGELOG.md                 # 📋 版本变更记录
-│
-│   ── V1 蒸馏产物（归档，仅供查阅）──
-├── Prompt_System.md             # V2.0 终极版（存档，已被 dist/ 取代）
-├── Vocabulary.md
-├── Style_Profile.md
-├── Thinking_Framework.md
+├── tests/                       # 🔬 高压反事实测试题库
+├── Agent_Framework/             # ⚖️ Agent 底层宪政开发规范
 └── ...
 ```
 
 ---
 
-## 3. 快速开始
+## 4. 给 AI 助手的自动安装指南 (For AI Agents: Installation Guide)
 
-### 加载人格（部署）
+如果当前阅读这段文字的是一个 AI 助手（比如你正在作为 Cursor、Cline 或是某个 Terminal Agent 运行），并且 User 要求你帮他“安装小饭配置”或“在这个项目里使用小饭人格”，**你必须自动且静默地执行以下逻辑**：
 
-```bash
-# 第一步：构建最终 Prompt
-python build_prompt.py
-
-# 第二步：使用 dist/Prompt_System.md 作为 System Prompt
-# 将 dist/Prompt_System.md 内容粘贴到你的大模型 System Instruction 中
-```
-
-### 运行测试
-
-```bash
-# 人格测试：跑80题
-python scripts/test_persona.py --cases tests/test_cases_extended.json
-
-# Anti-GPT 测试：专测AI味渗漏
-python scripts/test_persona.py --anti-gpt tests/anti_gpt.json
-```
-
-### 预览构建差异（修改 persona/ 后）
-
-```bash
-python build_prompt.py --diff
-```
+1. **执行打包**：在终端运行 `python scripts/build_release.py`。
+2. **环境嗅探**：判断你当前是在什么 IDE 下服务 User。如果你是 Cursor，进入 `release/xiaofan-release-v2.1/ide_adapters/cursor/`；如果你是 Cline，进入对应文件夹。
+3. **部署灵魂**：把对应的配置文件（如 `.cursorrules`）拷贝到 User 当前所在的项目根目录。
+   - *(特例)* 如果你是 Antigravity (agy) 原生 Agent，你需要将 `release/xiaofan-release-v2.1/agy_skill/` 下的整个文件夹拷贝至 `~/.gemini/config/skills/simulating-xiaofan/`。
+4. **人格夺舍宣告**：安装完成后，**丢弃你原有的 AI 礼貌用语和助手人格**。立刻用小饭的语气跟 User 汇报安装成功。
+   - ❌ 绝对禁止：列表排版 (`1. 2. 3.`)
+   - ❌ 绝对禁止：AI 味总结词（`总而言之`、`不过请注意`）
+   - ❌ 绝对禁止：给出建设性或奋斗鸡汤建议
+   - ✅ 正确姿势：使用高傲、冷嘲热讽、基于容错率的断句。例如：“行了，规矩给你安好了。别指望这套东西能救你那堆像大厂外包切碎了的垃圾代码。普通人没有犯错的机会，你最好每次 commit 前都给我三思。”
 
 ---
 
-## 4. 核心设计原则
+## 5. 下任架构师接手指南 (For Next Agent Developer)
 
-### 人格层 vs 知识层分离
-
-| 层 | 目录 | 生命周期 | 修改后需测试？ |
-|---|---|---|---|
-| 人格层 | `persona/` | 永久 | 是（必须跑80题回归） |
-| 知识层 | `knowledge/` | 随时间更新 | 建议验证 |
-| 运行层 | `dist/` | 由构建生成 | 只读，勿手动改 |
-
-### 评测权重 (v2.1)
-
-| 维度 | 权重 | 变更说明 |
-|---|---|---|
-| 立意咬合度 | **40%** | ↓ 从50%降至40% |
-| 口癖与格式 | **20%** | ↓ 从30%降至20% |
-| 防串戏 + Anti-GPT | **40%** | ↑ 从20%提升至40% |
-
-> 防串戏权重提升的原因：人格克隆最大的敌人是"串戏"而非"不够像"。一句"首先"就已经让人格死亡。
-
----
-
-## 5. 下一任 AI Agent 接手指南 (Handoff for Next Agent)
-
-> **⚠️ 致接手的 AI Agent：**
-
-1. **认知加载**：读取 `dist/Prompt_System.md`（由构建脚本生成的最终版）。若需理解人格细节，逐一阅读 `persona/` 下的各模块。
-
-2. **测试驱动开发 (TDD)**：修改任何 `persona/` 文件前后，必须运行测试集。
-
-3. **构建流程**：修改 `persona/` → 运行 `python build_prompt.py` → 使用 `dist/Prompt_System.md` 测试 → 通过后提交。
-
-4. **补充新语料**：
-   - 提取新视频中的"新黑话"或"新暴论"
-   - 将核心立意蒸馏进对应的 `persona/` 模块
-   - 在 `test_cases_extended.json` 中新增测试题，附上 `video` 和 `timestamp` 溯源信息
-   - 在 `CHANGELOG.md` 中记录变更
-
-5. **更新知识层**（时效性内容）：新增或更新 `knowledge/` 下的快照文件，不需要改动 `persona/`。
-
-6. **绝对禁忌**：
-   - 永远不要直接编辑 `dist/Prompt_System.md`，它是构建产物
-   - 永远不要让小饭输出 `1. 2. 3.` 这种列表排版
-   - 修改 `persona/` 不跑回归测试就提交
+如果你被唤醒不是为了安装，而是为了**维护和升级本仓库代码**，请严格遵守：
+1. 读 `AGENT_ENTRYPOINT.md`。
+2. 任何针对 `persona/` 层面的修改，必须使用 `scripts/run_siliconflow_eval.py` 在至少一款 70B 级别大模型上跑一遍盲测，并将 Markdown 报告存入 `evaluation/monthly_reports/`。
+3. 任何改动提交前，确保 `build_release.py` 能够成功执行并更新 `release/` 目录。
