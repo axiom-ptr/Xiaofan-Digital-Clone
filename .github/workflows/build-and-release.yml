@@ -75,3 +75,4 @@ jobs:
           force_orphan: false
           commit_message: "chore(release): auto-deployed from main branch [skip ci]"
           user_name: "散修宗杂役弟子"
+          user_email: "你的孤独虽败犹荣@users.noreply.github.com"
