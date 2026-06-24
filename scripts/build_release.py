@@ -221,6 +221,40 @@ xiaofan_agent_config = {{
 
     print("✅ 打包主流 Agent 框架配置 (agent_frameworks)")
 
+def generate_build_manifest():
+    """生成构建清单文件 (Build Manifest)"""
+    import subprocess
+    import json
+    try:
+        commit_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('utf-8').strip()
+        source_branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).decode('utf-8').strip()
+    except Exception:
+        commit_hash = "unknown"
+        source_branch = "unknown"
+
+    manifest = {
+        "version": "2.1",
+        "commit": commit_hash,
+        "built_at": datetime.now().isoformat(),
+        "source_branch": source_branch
+    }
+    with open(RELEASE_DIR / "build-info.json", "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+    print("✅ 生成构建清单 (build-info.json)")
+
+def validate_artifacts():
+    """校验生成的产物是否完整，防止发布半成品"""
+    required_files = [
+        AGY_DIR / "SKILL.md",
+        AGY_RESOURCES / "Prompt_System.md",
+        STD_DIR / "Xiaofan_Full_Prompt.txt",
+        RELEASE_DIR / "ide_adapters" / "cursor" / ".cursorrules",
+        RELEASE_DIR / "build-info.json"
+    ]
+    for file_path in required_files:
+        assert file_path.exists(), f"❌ 构建异常：缺失关键产物 {file_path}"
+    print("✅ 产物完整性校验通过！")
+
 def main():
     print("🚀 开始构建多平台分发包...")
     setup_directories()
@@ -229,6 +263,8 @@ def main():
     build_knowledge_base()
     build_ide_adapters()
     build_agent_frameworks()
+    generate_build_manifest()
+    validate_artifacts()
     print(f"\n🎉 分发包构建完成！\n请查看: {RELEASE_DIR}")
 
 if __name__ == "__main__":
