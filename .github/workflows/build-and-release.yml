@@ -30,7 +30,7 @@ jobs:
         run: python scripts/build_release.py
 
       - name: Save Checksums
-        run: cp release/xiaofan-release-v2.1/checksums.json /tmp/checksums1.json
+        run: cp release/checksums.json /tmp/checksums1.json
 
       - name: Clean Release Directory
         run: rm -rf release/
@@ -40,23 +40,13 @@ jobs:
 
       - name: Verify Deterministic Build
         run: |
-          cp release/xiaofan-release-v2.1/checksums.json /tmp/checksums2.json
+          cp release/checksums.json /tmp/checksums2.json
           diff /tmp/checksums1.json /tmp/checksums2.json || { echo "❌ 灾难性错误：构建不具备确定性 (Non-deterministic build detected)!"; exit 1; }
           echo "✅ 可复现构建校验通过 (Deterministic build verified)!"
 
-      - name: Prepare Staging Directory
+      - name: Prepare README for Release Branch
         run: |
-          mkdir -p deploy_stage
-          
-          # 1. 拷贝核心分发产物
-          cp -r release/xiaofan-release-v2.1/* deploy_stage/
-          
-          # 2. 为 Antigravity 用户直接注入开箱即用的 Skill 挂载点
-          mkdir -p deploy_stage/.agents/skills/simulating-xiaofan
-          cp -r release/xiaofan-release-v2.1/agy_skill/* deploy_stage/.agents/skills/simulating-xiaofan/
-          
-          # 3. 生成 release 分支特供版的 README
-          cat << 'EOF' > deploy_stage/README.md
+          cat << 'EOF' > release/README.md
           # 小饭数字分身 (Xiaofan Digital Clone) - 开箱即用版
           
           这是已编译打包完成的**最终交付产物 (Release)**。
@@ -64,11 +54,11 @@ jobs:
           
           ## 📦 产物列表
           
-          - 🤖 **Agent 开发**：去 `agent_frameworks/` 获取 CrewAI / AutoGen / OpenAI API 的配置。
-          - 💻 **IDE 玩家**：去 `ide_adapters/` 获取 Cursor / Cline / Windsurf 的专属规则，拖入你的工程。
+          - 🤖 **Agent 开发**：去 `openai/` / `crewai/` / `autogen/` 获取框架配置。
+          - 💻 **IDE 玩家**：去 `cursor/` / `cline/` / `windsurf/` 获取专属规则，拖入你的工程。
           - 🗣️ **纯享版**：去 `standard_prompt/` 复制文本，扔给 ChatGPT。
           - 🌐 **知识库**：去 `knowledge_base/` 下载 Markdown 导入 Dify / Coze。
-          - ⚡ **Antigravity 原生支持**：本分支已自带 `.agents/skills/simulating-xiaofan`。如果你通过 Antigravity 的 Workspace 挂载此目录，该技能会被**自动发现并激活**，无需额外配置！
+          - ⚡ **Antigravity 原生支持**：本分支已自带 `simulating-xiaofan/` 技能目录。直接将该目录复制到你的 `~/.gemini/config/skills/` 下即可！
           
           ---
           
@@ -86,6 +76,6 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: release
-          publish_dir: ./deploy_stage
+          publish_dir: ./release
           force_orphan: false
           commit_message: "chore(release): auto-deployed from main branch [skip ci]"

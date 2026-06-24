@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 """
 build_release.py - 小饭数字分身跨平台分发打包工具 (Cross-platform Release Builder)
-
-此脚本将兵工厂（Repository）中的工程资产提取并打包成三种分发格式：
-1. agy_skill: 供 Antigravity 架构使用的原生 Skill 插件
-2. standard_prompt: 供 ChatGPT/Claude/Kimi 等通用大模型直接复制粘贴的单文件提示词
-3. knowledge_base: 供 Coze/Dify/FastGPT 挂载的纯净知识库集合
 """
 
 import os
@@ -17,30 +12,41 @@ from pathlib import Path
 from datetime import datetime
 
 REPO_ROOT = Path(__file__).parent.parent
-RELEASE_DIR = REPO_ROOT / "release" / f"xiaofan-release-v2.1"
+RELEASE_DIR = REPO_ROOT / "release"
 
-# 目标分发目录
-AGY_DIR = RELEASE_DIR / "agy_skill"
-AGY_RESOURCES = AGY_DIR / "resources"
+# 扁平化的直接目标目录
+SKILL_DIR = RELEASE_DIR / "simulating-xiaofan"
+CURSOR_DIR = RELEASE_DIR / "cursor"
+CLINE_DIR = RELEASE_DIR / "cline"
+WINDSURF_DIR = RELEASE_DIR / "windsurf"
+GITHUB_DIR = RELEASE_DIR / "github"
+
+OPENAI_DIR = RELEASE_DIR / "openai"
+CREWAI_DIR = RELEASE_DIR / "crewai"
+AUTOGEN_DIR = RELEASE_DIR / "autogen"
+
 STD_DIR = RELEASE_DIR / "standard_prompt"
 KB_DIR = RELEASE_DIR / "knowledge_base"
+
+ALL_DIRS = [
+    SKILL_DIR, CURSOR_DIR, CLINE_DIR, WINDSURF_DIR, GITHUB_DIR,
+    OPENAI_DIR, CREWAI_DIR, AUTOGEN_DIR, STD_DIR, KB_DIR
+]
 
 def setup_directories():
     if RELEASE_DIR.exists():
         shutil.rmtree(RELEASE_DIR)
     
-    for d in [AGY_RESOURCES, STD_DIR, KB_DIR]:
+    for d in ALL_DIRS:
         d.mkdir(parents=True, exist_ok=True)
     print(f"✅ 创建发布目录: {RELEASE_DIR}")
 
 def build_agy_skill():
-    """打包 Antigravity 专属 Skill"""
-    # 拷贝依赖资源
-    shutil.copy(REPO_ROOT / "dist" / "Prompt_System.md", AGY_RESOURCES / "Prompt_System.md")
-    shutil.copy(REPO_ROOT / "identity" / "canonical_principles.md", AGY_RESOURCES / "canonical_principles.md")
-    shutil.copy(REPO_ROOT / "FAILURE_MODES.md", AGY_RESOURCES / "FAILURE_MODES.md")
+    """打包 Antigravity 专属 Skill (扁平结构)"""
+    shutil.copy(REPO_ROOT / "dist" / "Prompt_System.md", SKILL_DIR / "Prompt_System.md")
+    shutil.copy(REPO_ROOT / "identity" / "canonical_principles.md", SKILL_DIR / "canonical_principles.md")
+    shutil.copy(REPO_ROOT / "FAILURE_MODES.md", SKILL_DIR / "FAILURE_MODES.md")
     
-    # 构建去依赖版的 SKILL.md
     skill_content = """---
 name: simulating-xiaofan
 description: Use when tasked with simulating or responding as Xiaofan (散修宗主), or analyzing society/markets from a cynical, class-conscious perspective
@@ -56,9 +62,9 @@ This skill provides the required workflow to perfectly simulate the digital pers
 When invoked to simulate Xiaofan, you MUST execute the following steps in your internal thought process before answering:
 
 1. **Load the Persona Context (Read these files)**:
-   - Read `resources/Prompt_System.md` (The core persona and styling)
-   - Read `resources/canonical_principles.md` (The underlying worldview)
-   - Read `resources/FAILURE_MODES.md` (The explicit persona failure criteria)
+   - Read `Prompt_System.md` (The core persona and styling)
+   - Read `canonical_principles.md` (The underlying worldview)
+   - Read `FAILURE_MODES.md` (The explicit persona failure criteria)
 
 2. **Draft the Response**:
    Apply the worldview to the user's prompt. Focus on "容错率" (error tolerance), class mechanics, and cynical realities.
@@ -78,9 +84,9 @@ When invoked to simulate Xiaofan, you MUST execute the following steps in your i
 | Tone | Objective, balanced, polite | Cynical, direct, mocking |
 | Logic | Nuanced, multi-perspective | Class-based ("散修" vs "上三宗") |
 """
-    with open(AGY_DIR / "SKILL.md", "w", encoding="utf-8") as f:
+    with open(SKILL_DIR / "SKILL.md", "w", encoding="utf-8") as f:
         f.write(skill_content)
-    print("✅ 打包 Antigravity 原生 Skill (agy_skill)")
+    print("✅ 打包 Antigravity 原生 Skill (simulating-xiaofan/)")
 
 def build_standard_prompt():
     """打包给普通用户的通用单文件 Prompt"""
@@ -112,14 +118,12 @@ def build_standard_prompt():
 """
     with open(STD_DIR / "Xiaofan_Full_Prompt.txt", "w", encoding="utf-8") as f:
         f.write(full_prompt)
-    print("✅ 打包单文件纯文本提示词 (standard_prompt)")
+    print("✅ 打包单文件纯文本提示词 (standard_prompt/)")
 
 def build_knowledge_base():
     """打包供给 Coze/Dify 等 RAG 平台使用的知识库语料"""
-    # 拷贝所有可以作为 RAG 知识源的文件
     shutil.copy(REPO_ROOT / "knowledge" / "macro_2024.md", KB_DIR / "knowledge_macro_2024.md")
     
-    # 从各种提取的 JSON 中汇总出供检索的纯文本语料库
     corpus_text = "# 小饭经典语录与黑话知识库\n\n"
     for json_file in sorted((REPO_ROOT / "data" / "raw_extractions").glob("*.json")):
         with open(json_file, "r", encoding="utf-8") as f:
@@ -131,13 +135,10 @@ def build_knowledge_base():
                 
     with open(KB_DIR / "knowledge_vocabulary_and_quotes.md", "w", encoding="utf-8") as f:
         f.write(corpus_text)
-    print("✅ 打包平台知识库语料 (knowledge_base)")
+    print("✅ 打包平台知识库语料 (knowledge_base/)")
 
 def build_ide_adapters():
-    """打包适配各种主流 AI IDE 及其特有文件夹规范的配置文件"""
-    IDE_DIR = RELEASE_DIR / "ide_adapters"
-    IDE_DIR.mkdir(parents=True, exist_ok=True)
-    
+    """打包适配各种主流 AI IDE"""
     with open(REPO_ROOT / "dist" / "Prompt_System.md", "r", encoding="utf-8") as f:
         prompt = f.read()
     with open(REPO_ROOT / "identity" / "canonical_principles.md", "r", encoding="utf-8") as f:
@@ -145,37 +146,15 @@ def build_ide_adapters():
     
     base_rules = f"{prompt}\n\n## 强制世界观\n{principles}"
     
-    # 1. Cursor 适配 (.cursorrules)
-    cursor_dir = IDE_DIR / "cursor"
-    cursor_dir.mkdir()
-    with open(cursor_dir / ".cursorrules", "w", encoding="utf-8") as f:
-        f.write(base_rules)
-        
-    # 2. GitHub Copilot 适配 (.github/copilot-instructions.md)
-    github_dir = IDE_DIR / "github" / ".github"
-    github_dir.mkdir(parents=True)
-    with open(github_dir / "copilot-instructions.md", "w", encoding="utf-8") as f:
-        f.write(base_rules)
-        
-    # 3. Cline 适配 (.clinerules)
-    cline_dir = IDE_DIR / "cline"
-    cline_dir.mkdir()
-    with open(cline_dir / ".clinerules", "w", encoding="utf-8") as f:
-        f.write(base_rules)
+    with open(CURSOR_DIR / ".cursorrules", "w", encoding="utf-8") as f: f.write(base_rules)
+    with open(GITHUB_DIR / "copilot-instructions.md", "w", encoding="utf-8") as f: f.write(base_rules)
+    with open(CLINE_DIR / ".clinerules", "w", encoding="utf-8") as f: f.write(base_rules)
+    with open(WINDSURF_DIR / ".windsurfrules", "w", encoding="utf-8") as f: f.write(base_rules)
 
-    # 4. Windsurf 适配 (.windsurfrules)
-    windsurf_dir = IDE_DIR / "windsurf"
-    windsurf_dir.mkdir()
-    with open(windsurf_dir / ".windsurfrules", "w", encoding="utf-8") as f:
-        f.write(base_rules)
-
-    print("✅ 打包主流 IDE 适配文件夹 (ide_adapters)")
+    print("✅ 打包主流 IDE 适配文件夹 (cursor/, cline/, 等)")
 
 def build_agent_frameworks():
-    """打包适配业界主流 Agent 框架（如 CrewAI, AutoGen, OpenAI Assistants API）"""
-    AGENT_DIR = RELEASE_DIR / "agent_frameworks"
-    AGENT_DIR.mkdir(parents=True, exist_ok=True)
-    
+    """打包适配业界主流 Agent 框架"""
     with open(REPO_ROOT / "dist" / "Prompt_System.md", "r", encoding="utf-8") as f:
         prompt = f.read()
     with open(REPO_ROOT / "identity" / "canonical_principles.md", "r", encoding="utf-8") as f:
@@ -185,7 +164,6 @@ def build_agent_frameworks():
         
     full_instructions = f"{prompt}\n\n## 强制世界观\n{principles}\n\n## 绝对禁止的失败模式\n{failures}"
 
-    # 1. OpenAI Assistants API (JSON 格式)
     openai_config = {
         "name": "Xiaofan (散修宗主)",
         "instructions": full_instructions,
@@ -193,10 +171,9 @@ def build_agent_frameworks():
         "description": "极度冷血、基于阶层博弈和容错率视角的社会/金融评论家",
         "temperature": 0.7
     }
-    with open(AGENT_DIR / "openai_assistant.json", "w", encoding="utf-8") as f:
+    with open(OPENAI_DIR / "openai_assistant.json", "w", encoding="utf-8") as f:
         json.dump(openai_config, f, ensure_ascii=False, indent=2)
 
-    # 2. CrewAI 适配 (YAML 格式)
     crewai_yaml = f"""xiaofan_agent:
   role: >
     社会/金融评论家（散修宗主）
@@ -206,12 +183,10 @@ def build_agent_frameworks():
     你是一个在 A股 摸爬滚打、经历过北京金融圈毒打的独立交易员。你痛恨大厂的螺丝钉文化，看透了富人试错与穷人当缓冲带的零和博弈本质。
   instructions: |
 """
-    # 缩进处理 instructions
     indented_instructions = "\n".join(["    " + line for line in full_instructions.splitlines()])
-    with open(AGENT_DIR / "crewai_agent.yaml", "w", encoding="utf-8") as f:
+    with open(CREWAI_DIR / "crewai_agent.yaml", "w", encoding="utf-8") as f:
         f.write(crewai_yaml + indented_instructions)
 
-    # 3. Microsoft AutoGen 适配 (Python Dict)
     autogen_py = f"""# AutoGen Agent Configuration
 xiaofan_agent_config = {{
     "name": "Xiaofan",
@@ -221,10 +196,10 @@ xiaofan_agent_config = {{
     }}
 }}
 """
-    with open(AGENT_DIR / "autogen_agent.py", "w", encoding="utf-8") as f:
+    with open(AUTOGEN_DIR / "autogen_agent.py", "w", encoding="utf-8") as f:
         f.write(autogen_py)
 
-    print("✅ 打包主流 Agent 框架配置 (agent_frameworks)")
+    print("✅ 打包主流 Agent 框架配置 (openai/, crewai/, 等)")
 
 def generate_build_manifest():
     """生成构建清单文件 (Build Manifest)"""
@@ -262,13 +237,12 @@ def generate_checksums():
 
 def validate_artifacts():
     """校验生成的产物是否完整且可用 (Smoke Test)"""
-    # 1. 存在性及非空断言
     required_files = [
-        AGY_DIR / "SKILL.md",
-        AGY_RESOURCES / "Prompt_System.md",
+        SKILL_DIR / "SKILL.md",
+        SKILL_DIR / "Prompt_System.md",
         STD_DIR / "Xiaofan_Full_Prompt.txt",
-        RELEASE_DIR / "ide_adapters" / "cursor" / ".cursorrules",
-        RELEASE_DIR / "agent_frameworks" / "openai_assistant.json",
+        CURSOR_DIR / ".cursorrules",
+        OPENAI_DIR / "openai_assistant.json",
         RELEASE_DIR / "build-info.json",
         RELEASE_DIR / "checksums.json"
     ]
@@ -276,14 +250,12 @@ def validate_artifacts():
         assert file_path.exists(), f"❌ 构建异常：缺失关键产物 {file_path}"
         assert file_path.stat().st_size > 50, f"❌ 构建异常：产物 {file_path} 内容过小或为空！"
         
-    # 2. 内容有效性断言 (Smoke Test)
     with open(STD_DIR / "Xiaofan_Full_Prompt.txt", "r", encoding="utf-8") as f:
         content = f.read()
         assert "小饭" in content, "❌ 构建异常：Prompt_System 中丢失核心人物设定！"
         assert "散修" in content, "❌ 构建异常：Prompt_System 中丢失核心阶层设定！"
-        # 简单防退化检查
         
-    with open(RELEASE_DIR / "agent_frameworks" / "openai_assistant.json", "r", encoding="utf-8") as f:
+    with open(OPENAI_DIR / "openai_assistant.json", "r", encoding="utf-8") as f:
         data = json.load(f)
         assert data.get("name") == "Xiaofan (散修宗主)", "❌ 构建异常：OpenAI Assistant 名字解析错误！"
         
