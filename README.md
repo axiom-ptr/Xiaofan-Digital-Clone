@@ -45,3 +45,19 @@ simulating-xiaofan/
 1. **绝对禁止直接修改分发产物**：所有的修改必须在 `main` 分支下的 `persona/` 或 `tests/` 目录进行。
 2. **重构底线**：不要盲目增加架构层级（Meta-layer explosion）。当前项目已回归极简的“构建 -> 分发”单线模式，不需要再扩展任何复杂的 IDE 适配器或冗杂路径。
 3. **本地验证闭环**：任何修改后，必须运行 `python3 scripts/build_release.py` 确保未打破产物的确定性和可用性。
+
+---
+
+## 🛠️ 开发依赖 (Dependencies)
+
+**1. 生产构建 (Build)**
+- 依赖：**0 个第三方包**（完全零依赖）。
+- 环境：Python 3.8+（仅使用 `os`, `json`, `shutil` 等标准库）+ 基础的 `git` 命令。
+
+**2. 跑分与测试 (Test)**
+如需运行 `scripts/` 下的自动评估脚本或人格高压测试，需安装以下第三方库：
+```bash
+pip install requests
+pip install google-genai
+pip install google-generativeai
+```
