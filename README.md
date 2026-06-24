@@ -23,12 +23,12 @@
 - **`FAILURE_MODES.md`**：绝对禁止触发的模型行为红线（例如：输出鸡汤、做理财建议）。
 
 ### 2. `release` 分支 (用户获取专属)
-**普通用户请直接切换至 [release 分支](https://github.com/YourName/Xiaofan-Digital-Clone/tree/release) 提取产物。**
+**普通用户请直接切换至 [release 分支](https://github.com/YourName/Xiaofan-Digital-Clone) 提取产物。**
 该分支是通过 GitHub Actions 自动构建的纯净产物，无任何冗余源码。
 
 **产物结构：**
 ```text
-Xiaofan-Digital-Clone/
+xiaofan-persona/
   ├── SKILL.md
   ├── Prompt_System.md
   ├── canonical_principles.md
@@ -37,7 +37,7 @@ Xiaofan-Digital-Clone/
 
 **如何使用：**
 本包采用了标准的 `SKILL.md + 依赖` 结构。
-- **Antigravity (AGY) 用户**：直接将 `Xiaofan-Digital-Clone/` 文件夹复制到你的 `~/.gemini/config/skills/` 目录下即可激活。
+- **Antigravity (AGY) 用户**：直接将 `xiaofan-persona/` 文件夹复制到你的 `~/.gemini/config/skills/` 目录下即可激活。
 - **其他 Agent 框架用户**：复制此文件夹，将其内部的 Markdown 文件作为你的 Agent 的核心上下文（Context）载入。
 
 ---
