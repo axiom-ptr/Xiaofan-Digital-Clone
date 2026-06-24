@@ -9,7 +9,10 @@ build_release.py - 小饭数字分身跨平台分发打包工具 (Cross-platform
 """
 
 import os
+import json
 import shutil
+import hashlib
+import subprocess
 from pathlib import Path
 from datetime import datetime
 
@@ -88,9 +91,14 @@ def build_standard_prompt():
     with open(REPO_ROOT / "FAILURE_MODES.md", "r", encoding="utf-8") as f:
         failures = f.read()
 
+    try:
+        build_date = subprocess.check_output(['git', 'show', '-s', '--format=%cd', '--date=short', 'HEAD']).decode('utf-8').strip()
+    except Exception:
+        build_date = datetime.now().strftime('%Y-%m-%d')
+
     full_prompt = f"""# 小饭 (Fan Zong) - 散修宗主数字分身系统提示词
 版本: v2.1
-发布时间: {datetime.now().strftime('%Y-%m-%d')}
+发布时间: {build_date}
 
 请将以下所有内容作为你的全局 System Prompt：
 
@@ -113,8 +121,7 @@ def build_knowledge_base():
     
     # 从各种提取的 JSON 中汇总出供检索的纯文本语料库
     corpus_text = "# 小饭经典语录与黑话知识库\n\n"
-    for json_file in (REPO_ROOT / "data" / "raw_extractions").glob("*.json"):
-        import json
+    for json_file in sorted((REPO_ROOT / "data" / "raw_extractions").glob("*.json")):
         with open(json_file, "r", encoding="utf-8") as f:
             try:
                 data = json.load(f)
@@ -166,8 +173,6 @@ def build_ide_adapters():
 
 def build_agent_frameworks():
     """打包适配业界主流 Agent 框架（如 CrewAI, AutoGen, OpenAI Assistants API）"""
-    import json
-    
     AGENT_DIR = RELEASE_DIR / "agent_frameworks"
     AGENT_DIR.mkdir(parents=True, exist_ok=True)
     
@@ -223,8 +228,6 @@ xiaofan_agent_config = {{
 
 def generate_build_manifest():
     """生成构建清单文件 (Build Manifest)"""
-    import subprocess
-    import json
     try:
         commit_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('utf-8').strip()
         source_branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).decode('utf-8').strip()
@@ -242,18 +245,49 @@ def generate_build_manifest():
         json.dump(manifest, f, indent=2)
     print("✅ 生成构建清单 (build-info.json)")
 
+def generate_checksums():
+    """生成产物 SHA256 校验和 (Reproducible Build)"""
+    checksums = {}
+    for filepath in sorted(RELEASE_DIR.rglob("*")):
+        if filepath.is_file() and filepath.name not in ["build-info.json", "checksums.json"]:
+            hasher = hashlib.sha256()
+            with open(filepath, "rb") as f:
+                hasher.update(f.read())
+            rel_path = filepath.relative_to(RELEASE_DIR).as_posix()
+            checksums[rel_path] = "sha256:" + hasher.hexdigest()
+            
+    with open(RELEASE_DIR / "checksums.json", "w", encoding="utf-8") as f:
+        json.dump(checksums, f, indent=2)
+    print("✅ 生成 SHA256 校验和 (checksums.json)")
+
 def validate_artifacts():
-    """校验生成的产物是否完整，防止发布半成品"""
+    """校验生成的产物是否完整且可用 (Smoke Test)"""
+    # 1. 存在性及非空断言
     required_files = [
         AGY_DIR / "SKILL.md",
         AGY_RESOURCES / "Prompt_System.md",
         STD_DIR / "Xiaofan_Full_Prompt.txt",
         RELEASE_DIR / "ide_adapters" / "cursor" / ".cursorrules",
-        RELEASE_DIR / "build-info.json"
+        RELEASE_DIR / "agent_frameworks" / "openai_assistant.json",
+        RELEASE_DIR / "build-info.json",
+        RELEASE_DIR / "checksums.json"
     ]
     for file_path in required_files:
         assert file_path.exists(), f"❌ 构建异常：缺失关键产物 {file_path}"
-    print("✅ 产物完整性校验通过！")
+        assert file_path.stat().st_size > 50, f"❌ 构建异常：产物 {file_path} 内容过小或为空！"
+        
+    # 2. 内容有效性断言 (Smoke Test)
+    with open(STD_DIR / "Xiaofan_Full_Prompt.txt", "r", encoding="utf-8") as f:
+        content = f.read()
+        assert "小饭" in content, "❌ 构建异常：Prompt_System 中丢失核心人物设定！"
+        assert "散修" in content, "❌ 构建异常：Prompt_System 中丢失核心阶层设定！"
+        # 简单防退化检查
+        
+    with open(RELEASE_DIR / "agent_frameworks" / "openai_assistant.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+        assert data.get("name") == "Xiaofan (散修宗主)", "❌ 构建异常：OpenAI Assistant 名字解析错误！"
+        
+    print("✅ 产物完整性及可用性 Smoke Test 校验通过！")
 
 def main():
     print("🚀 开始构建多平台分发包...")
@@ -264,6 +298,7 @@ def main():
     build_ide_adapters()
     build_agent_frameworks()
     generate_build_manifest()
+    generate_checksums()
     validate_artifacts()
     print(f"\n🎉 分发包构建完成！\n请查看: {RELEASE_DIR}")
 

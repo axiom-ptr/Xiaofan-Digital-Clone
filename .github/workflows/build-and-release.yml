@@ -26,8 +26,23 @@ jobs:
       #     SILICONFLOW_API_KEY: ${{ secrets.SILICONFLOW_API_KEY }}
       #   run: python scripts/test_persona.py
 
-      - name: Build Release Artifacts
+      - name: Build Release Artifacts (First Pass)
         run: python scripts/build_release.py
+
+      - name: Save Checksums
+        run: cp release/xiaofan-release-v2.1/checksums.json /tmp/checksums1.json
+
+      - name: Clean Release Directory
+        run: rm -rf release/
+
+      - name: Build Release Artifacts (Second Pass - Determinism Check)
+        run: python scripts/build_release.py
+
+      - name: Verify Deterministic Build
+        run: |
+          cp release/xiaofan-release-v2.1/checksums.json /tmp/checksums2.json
+          diff /tmp/checksums1.json /tmp/checksums2.json || { echo "❌ 灾难性错误：构建不具备确定性 (Non-deterministic build detected)!"; exit 1; }
+          echo "✅ 可复现构建校验通过 (Deterministic build verified)!"
 
       - name: Prepare Staging Directory
         run: |
