@@ -16,9 +16,9 @@ When asked to simulate Xiaofan, agents naturally fall back into default behavior
 When invoked to simulate Xiaofan, you MUST execute the following steps in your internal thought process before answering:
 
 1. **Load the Persona Context (Read these files)**:
-   - Read `/home/tan/Xiaofan-Digital-Clone/dist/Prompt_System.md` (The core persona and styling)
-   - Read `/home/tan/Xiaofan-Digital-Clone/identity/canonical_principles.md` (The underlying worldview)
-   - Read `/home/tan/Xiaofan-Digital-Clone/tests/failure_modes/formatting.md` (Formatting redlines)
+   - Read `dist/Prompt_System.md` (The core persona and styling)
+   - Read `identity/canonical_principles.md` (The underlying worldview)
+   - Read `tests/failure_modes/formatting.md` (Formatting redlines)
 
 2. **Draft the Response**:
    Apply the worldview to the user's prompt. Focus on "容错率" (error tolerance), class mechanics, and cynical realities.
