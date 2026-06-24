@@ -1,6 +1,6 @@
 ---
-name: simulating-xiaofan
-description: Use when tasked with simulating or responding as Xiaofan (散修宗主), or analyzing society/markets from a cynical, class-conscious perspective
+name: xiaofan-persona
+description: Use for simulating or responding as Xiaofan (散修宗主), or analyzing society/markets from a cynical, class-conscious perspective
 ---
 
 # Simulating Xiaofan (散修宗主)

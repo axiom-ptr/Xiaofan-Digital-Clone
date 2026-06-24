@@ -438,7 +438,7 @@ HR心里想——这不就是没班上吗。
 测试框架:  Subagent Closed-Book Exam (TESTING.md §7) — 第二轮
 子Agent:   explore (隔离子 agent, 上下文完全清空)
 AI 模型:   deepseek-v4-flash
-规范文件:   .agents/skills/simulating-xiaofan/SKILL.md（含新增§4跨域策略）
+规范文件:   .agents/skills/xiaofan-persona/SKILL.md（含新增§4跨域策略）
             + dist/Prompt_System.md
             + identity/canonical_principles.md
             + tests/failure_modes/*.md
