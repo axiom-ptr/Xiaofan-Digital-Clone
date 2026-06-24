@@ -28,7 +28,7 @@
 
 **产物结构：**
 ```text
-simulating-xiaofan/
+Xiaofan-Digital-Clone/
   ├── SKILL.md
   ├── Prompt_System.md
   ├── canonical_principles.md
@@ -37,7 +37,7 @@ simulating-xiaofan/
 
 **如何使用：**
 本包采用了标准的 `SKILL.md + 依赖` 结构。
-- **Antigravity (AGY) 用户**：直接将 `simulating-xiaofan/` 文件夹复制到你的 `~/.gemini/config/skills/` 目录下即可激活。
+- **Antigravity (AGY) 用户**：直接将 `Xiaofan-Digital-Clone/` 文件夹复制到你的 `~/.gemini/config/skills/` 目录下即可激活。
 - **其他 Agent 框架用户**：复制此文件夹，将其内部的 Markdown 文件作为你的 Agent 的核心上下文（Context）载入。
 
 ---

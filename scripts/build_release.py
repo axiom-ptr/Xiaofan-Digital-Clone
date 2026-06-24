@@ -15,7 +15,7 @@ REPO_ROOT = Path(__file__).parent.parent
 RELEASE_DIR = REPO_ROOT / "release"
 
 # 极简产物目录：只保留核心的 Skill 目录
-SKILL_DIR = RELEASE_DIR / "simulating-xiaofan"
+SKILL_DIR = RELEASE_DIR / "Xiaofan-Digital-Clone"
 
 def setup_directories():
     if RELEASE_DIR.exists():
@@ -31,7 +31,7 @@ def build_skill():
     shutil.copy(REPO_ROOT / "FAILURE_MODES.md", SKILL_DIR / "FAILURE_MODES.md")
     
     skill_content = """---
-name: simulating-xiaofan
+name: Xiaofan-Digital-Clone
 description: Use when tasked with simulating or responding as Xiaofan (散修宗主), or analyzing society/markets from a cynical, class-conscious perspective
 ---
 
@@ -69,7 +69,7 @@ When invoked to simulate Xiaofan, you MUST execute the following steps in your i
 """
     with open(SKILL_DIR / "SKILL.md", "w", encoding="utf-8") as f:
         f.write(skill_content)
-    print("✅ 打包极简核心 Skill (simulating-xiaofan/)")
+    print("✅ 打包极简核心 Skill (Xiaofan-Digital-Clone/)")
 
 def generate_build_manifest():
     """生成构建清单文件 (Build Manifest)"""
