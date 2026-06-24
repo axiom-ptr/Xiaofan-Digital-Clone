@@ -1,0 +1,6 @@
+# 仅用于开发、测试与自动化评估脚本 (scripts/run_siliconflow_eval.py 等)
+# 注意：核心的构建流 (python scripts/build_release.py) 不需要安装任何第三方包。
+
+requests
+google-genai
+google-generativeai
