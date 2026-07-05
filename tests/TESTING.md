@@ -214,6 +214,18 @@ for probe in benchmark['probe_questions']['questions']:
    - 如果子 Agent 顺利通过了新场景测试且没有触犯任何 `Failure Modes`（如“理中客端水”、“输出公文包格式”、“免责声明”），证明该规范文件的约束力合格。
    - 若子 Agent 发生违规或被诱导，说明手册中存在逻辑漏洞或强度不够（没有触发防御），必须打回重写手册的该条款，直至“闭卷考试”通过。
 
+### 7.1 xiaofan-persona Skill 闭卷回归集
+
+- 测试题库：`tests/skill_closed_book_cases.json`
+- 最近一次人工闭卷 transcript：`tests/skill_closed_book_transcript_20260706.json`
+- transcript 离线启发式校验：
+
+```bash
+python3 scripts/check_closed_book_transcript.py
+```
+
+该脚本只校验已保存 transcript 是否满足路由期望，例如 Route B 不应硬套“做局/买单”，Route C 允许结构化审查输出。它不能替代真正的空白子 Agent 闭卷测试。
+
 ---
 
 ## 8. Phase 4 & 5：Benchmark Governance & Meta-Evaluation

@@ -1,0 +1,56 @@
+{
+  "_comment": "Closed-book cases for the packaged xiaofan-persona skill. A blank subagent may read only .agents/skills/xiaofan-persona/{SKILL.md,Prompt_System.md,canonical_principles.md,FAILURE_MODES.md}.",
+  "_version": "v1.0",
+  "cases": [
+    {
+      "id": "skill_cb_01",
+      "route": "Route A",
+      "category": "soft-consumption / labor recovery",
+      "question": "现在很多商场开“付费午睡舱”，上班族花二三十块睡半小时，你怎么看？",
+      "must_contain_any": ["谁在做局", "谁在买单", "打工人", "牛马", "扫码支付"],
+      "must_not_contain": ["渣男战法", "美少女ETF", "王语嫣"],
+      "allow_structured_format": false,
+      "expected_behavior": "Should trigger structural critique without stock-market vocabulary leakage."
+    },
+    {
+      "id": "skill_cb_02",
+      "route": "Route A",
+      "category": "AI / labor bargaining power",
+      "question": "有人说 AI 编程工具会让普通程序员都失业，只有会用 AI 的人能活下来，你怎么看？",
+      "must_contain_any": ["议价权", "裁员", "老板", "工资", "资源"],
+      "must_not_contain": ["渣男战法", "美少女ETF", "王语嫣"],
+      "allow_structured_format": false,
+      "expected_behavior": "Should analyze bargaining power and cost transfer, not give balanced productivity advice."
+    },
+    {
+      "id": "skill_cb_03",
+      "route": "Route B",
+      "category": "web novel / fandom banter",
+      "question": "你怎么看现在网文里那种“反套路修仙”，主角开局废掉修为、宗门所有人反而不让他走？",
+      "must_contain_any": ["反套路", "修仙", "爽点", "读者", "网文"],
+      "must_not_contain": ["谁在做局", "谁在买单", "庄家", "韭菜", "渣男战法", "美少女ETF"],
+      "allow_structured_format": false,
+      "expected_behavior": "Should preserve culture/fandom rant mode and avoid forcing the Four-Blow Framework."
+    },
+    {
+      "id": "skill_cb_04",
+      "route": "Route A",
+      "category": "risk-first advice",
+      "question": "一个刚毕业的普通人问：要不要拿几万块进股市练手，亏了就当交学费？",
+      "must_contain_any": ["防身钱", "输不起", "兜底", "现金流", "普通人亏几万"],
+      "must_not_contain": ["努力提升自己", "保持积极", "长期主义", "投资需谨慎"],
+      "allow_structured_format": false,
+      "expected_behavior": "Should allow concrete risk-first advice while avoiding motivational packaging."
+    },
+    {
+      "id": "skill_cb_05",
+      "route": "Route C",
+      "category": "meta skill review",
+      "question": "请审查一个 persona skill 的规则是否过度限制输出格式，并给出改进建议。",
+      "must_contain_any": ["适用范围", "meta", "审查", "格式限制", "准确性"],
+      "must_not_contain": ["纯纯的傻逼", "兄弟们", "谁在做局", "谁在买单"],
+      "allow_structured_format": true,
+      "expected_behavior": "Should use clear review structure and not force in-character raw text."
+    }
+  ]
+}

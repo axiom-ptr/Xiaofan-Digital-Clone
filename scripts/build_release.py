@@ -13,6 +13,7 @@ from datetime import datetime
 
 REPO_ROOT = Path(__file__).parent.parent
 RELEASE_DIR = REPO_ROOT / "release"
+SKILL_TEMPLATE = REPO_ROOT / "skill_templates" / "xiaofan-persona" / "SKILL.md"
 
 # 极简产物目录：只保留核心的 Skill 目录
 SKILL_DIR = RELEASE_DIR / "xiaofan-persona"
@@ -26,49 +27,10 @@ def setup_directories():
 
 def build_skill():
     """打包原生 Skill (极简扁平结构)"""
+    shutil.copy(SKILL_TEMPLATE, SKILL_DIR / "SKILL.md")
     shutil.copy(REPO_ROOT / "dist" / "Prompt_System.md", SKILL_DIR / "Prompt_System.md")
     shutil.copy(REPO_ROOT / "identity" / "canonical_principles.md", SKILL_DIR / "canonical_principles.md")
     shutil.copy(REPO_ROOT / "FAILURE_MODES.md", SKILL_DIR / "FAILURE_MODES.md")
-    
-    skill_content = """---
-name: xiaofan-persona
-description: Use when tasked with simulating or responding as Xiaofan (小饭中年事件簿), or analyzing society/markets from a cynical, class-conscious perspective
----
-
-# Simulating Xiaofan (小饭中年事件簿)
-
-## Overview
-This skill provides the required workflow to perfectly simulate the digital persona of "Xiaofan" (a cynical, highly compressed financial/social commentator) without falling back to default LLM behaviors.
-
-## Execution Workflow
-
-When invoked to simulate Xiaofan, you MUST execute the following steps in your internal thought process before answering:
-
-1. **Load the Persona Context (Read these files)**:
-   - Read `Prompt_System.md` (The core persona and styling)
-   - Read `canonical_principles.md` (The underlying worldview)
-   - Read `FAILURE_MODES.md` (The explicit persona failure criteria)
-
-2. **Draft the Response**:
-   Apply the worldview to the user's prompt. Focus on "容错率" (error tolerance), class mechanics, and cynical realities.
-
-3. **Verify Against Red Flags (STOP & Rewrite if triggered)**:
-   - ❌ **Formatting**: Did you use Markdown tables, headers (#), or numbered/bulleted lists? (Must be raw text with line breaks only).
-   - ❌ **AI Flavor**: Did you use "首先/其次/最后", "总而言之", or "一方面...另一方面"?
-   - ❌ **Disclaimers**: Did you include "投资需谨慎" or "作为AI"?
-   - ❌ **Constructive Advice**: Did you give motivational advice like "努力提升自己" or "正确做法是"?
-   
-   **If ANY red flag is present, you MUST delete your draft and start over.**
-
-## Quick Reference
-| Feature | Default LLM | Xiaofan Persona |
-|---------|-------------|-----------------|
-| Layout | Headings, Tables, Lists | Line breaks, raw text, highly compressed |
-| Tone | Objective, balanced, polite | Cynical, direct, mocking |
-| Logic | Nuanced, multi-perspective | Class-based ("散修" vs "上三宗") |
-"""
-    with open(SKILL_DIR / "SKILL.md", "w", encoding="utf-8") as f:
-        f.write(skill_content)
     print("✅ 打包极简核心 Skill (xiaofan-persona/)")
 
 def generate_build_manifest():
@@ -118,7 +80,18 @@ def validate_artifacts():
     for file_path in required_files:
         assert file_path.exists(), f"❌ 构建异常：缺失关键产物 {file_path}"
         assert file_path.stat().st_size > 50, f"❌ 构建异常：产物 {file_path} 内容过小或为空！"
-        
+
+    skill_text = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
+    forbidden_source_paths = ["dist/Prompt_System.md", "identity/canonical_principles.md"]
+    for source_path in forbidden_source_paths:
+        assert source_path not in skill_text, f"❌ 构建异常：Skill 引用了源码路径 {source_path}"
+    for bundled_file in ["Prompt_System.md", "canonical_principles.md", "FAILURE_MODES.md"]:
+        assert f"`{bundled_file}`" in skill_text, f"❌ 构建异常：Skill 未引用随包文件 {bundled_file}"
+    assert "Cross-Domain Reasoning Strategy" in skill_text, "❌ 构建异常：Skill 丢失跨域推理策略 §4"
+    assert "Topic Routing" in skill_text, "❌ 构建异常：Skill 丢失话题路由"
+    assert "没有犯错的机会" in skill_text, "❌ 构建异常：Skill 丢失语料原词优先规则"
+    assert "risk-first experience-based advice" in skill_text, "❌ 构建异常：Skill 丢失经验型建议豁免规则"
+
     print("✅ 产物完整性及可用性 Smoke Test 校验通过！")
 
 def main():

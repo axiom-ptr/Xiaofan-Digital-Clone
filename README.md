@@ -17,7 +17,8 @@
 - **`persona/`**：【核心】人格模块的 Source of Truth，包含世界观、核心设定和语料词汇。开发修改应在此处进行。
 - **`identity/`** & **`constitution/`**：底层根规则。`canonical_principles.md` 定义不可变的三大原则（容错率博弈、阶层分利、弱关系杠杆），`immutable_rules.md` 是人格宪法根文件，优先级高于任何语料。
 - **`knowledge/`**：时效性知识库（如 `macro_2024.md`），用于补充特定时间段的宏观背景。
-- **`.agents/skills/xiaofan-persona/`**：可发布的 Skill 包——即 `release` 分支分发的内容，包含 SKILL.md（含跨域推理策略）、Prompt_System.md、canonical_principles.md、FAILURE_MODES.md。
+- **`skill_templates/`**：Skill 入口文件模板的 Source of Truth。`scripts/build_release.py` 会从这里复制 `SKILL.md`，避免 main、release 与评测文档漂移。
+- **`.agents/skills/xiaofan-persona/`**：由构建产物同步得到的本地 Skill 包镜像，包含 SKILL.md（含跨域推理策略）、Prompt_System.md、canonical_principles.md、FAILURE_MODES.md。
 - **`dist/`**：由 `persona/` 模块组装的编译产物 Prompt_System.md，是 subagent 和闭卷考试实际读取的核心人格文件。
 - **`data/raw_extractions/`**：原始语料切片的 JSON 归档，保留历史语录和黑话提取结果，供回溯校准使用。
 - **`scripts/`**：自动化脚本车间。包含打包脚本 `build_release.py`、deploy 脚本 `deploy_to_release.sh`，以及测试评估脚本。
@@ -45,10 +46,10 @@
 
 如果你是一个接手本仓库开发的 AI 助手，请通读并严格遵守以下纪律：
 
-1. **绝对禁止直接修改分发产物**：永远不要修改 `release` 分支或 `.agents/skills/xiaofan-persona/` 内的内容。所有设定修改在 `persona/` 目录进行。宏观设定补充去 `knowledge/`。根规则修改需同时更新 `identity/` 和 `constitution/`。
+1. **绝对禁止直接修改分发产物**：永远不要修改 `release` 分支或 `.agents/skills/xiaofan-persona/` 内的内容。所有设定修改在 `persona/` 目录进行；Skill 入口流程修改去 `skill_templates/`；宏观设定补充去 `knowledge/`。根规则修改需同时更新 `identity/` 和 `constitution/`。
 2. **尊重根规则优先于语料**：`identity/canonical_principles.md` 和 `constitution/immutable_rules.md` 的优先级高于任何语料片段的表面风格。当语料片段与根规则冲突时，以根规则为准。
 3. **重构底线**：不要盲目增加架构层级。项目已回归极简的"构建 → 分发"模式，不需要扩展复杂的 IDE 适配器或冗余输出路径。
-4. **本地验证闭环**：任何修改后，必须运行 `python3 scripts/build_release.py`，并通过闭卷考试（`tests/TESTING.md §7`）验证人设未偏移。
+4. **本地验证闭环**：任何修改后，必须运行 `python3 scripts/build_release.py` 和 `python3 scripts/check_skill_package.py`；涉及人设行为的修改，还需通过闭卷考试（`tests/TESTING.md §7`）验证人设未偏移。
 5. **红线校验**：在写代码或修改 Prompt 之前，先看一遍 `FAILURE_MODES.md`，确保你没有引入任何可能导致"煲鸡汤"、"排版工整"、"建议式结尾"的逻辑。
 
 ---
