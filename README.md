@@ -2,12 +2,28 @@
 
 这是自动编译生成的发布产物 (Release)。
 
-## 📦 如何使用
+## 📦 安装指南 (Installation)
 
-本分支仅包含最纯净的 **数字人格 Skill 包**。
-- 🤖 **Agent Skill**：`xiaofan-persona/` 包含完整的 Skill 定义与校验元数据（SKILL.md + Prompt_System.md + canonical_principles.md + FAILURE_MODES.md + build-info.json + checksums.json）。
-- 如果你使用 Antigravity / Agent CLI，将 `xiaofan-persona/` 复制到项目 `.agents/skills/` 下即可自动识别并使用！
-- 如果你使用其他 AI Agent 框架，可以直接读取其内部的 Markdown 文件作为人格资产。
+### 1. 全局安装 (Global Installation - 推荐)
+在所有项目与终端中全局生效（支持 Antigravity, Claude Code, Cursor, agy CLI 等）：
+```bash
+git clone -b release https://github.com/tan/Xiaofan-Digital-Clone.git ~/.agents/skills/xiaofan-persona
+```
+
+### 2. 项目局部安装 (Project Installation)
+仅在当前项目中生效（支持随项目 git 提交）：
+```bash
+mkdir -p .agents/skills
+git clone -b release https://github.com/tan/Xiaofan-Digital-Clone.git .agents/skills/xiaofan-persona
+```
+
+### 3. 一键更新 (Update)
+随时同步最新的数字分身版本：
+```bash
+git -C ~/.agents/skills/xiaofan-persona pull    # 全局更新
+# 或
+git -C .agents/skills/xiaofan-persona pull     # 项目局部更新
+```
 
 ---
 
