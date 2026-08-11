@@ -364,7 +364,7 @@ def deploy_to_release(commit_msg: Optional[str] = None) -> bool:
 
 ## 📦 产物列表
 
-- 🤖 **Agent Skill**：`.agents/skills/xiaofan-persona/` 包含完整的 Skill 定义（SKILL.md + Prompt_System.md + canonical_principles.md + FAILURE_MODES.md），导入任何支持 Skill 机制的 AI 客户端即可使用。
+- 🤖 **Agent Skill**：`.agents/skills/xiaofan-persona/` 包含完整的 Skill 定义与校验元数据（SKILL.md + Prompt_System.md + canonical_principles.md + FAILURE_MODES.md + build-info.json + checksums.json），导入任何支持 Skill 机制的 AI 客户端即可使用。
 
 
 ---
