@@ -7,6 +7,20 @@
 
 ---
 
+## 📦 安装 (Installation)
+
+```bash
+mkdir -p .agents/skills
+git clone --depth 1 -b release https://github.com/tan/Xiaofan-Digital-Clone.git .agents/skills/xiaofan-persona
+```
+
+### 更新 (Update)
+```bash
+git -C .agents/skills/xiaofan-persona pull
+```
+
+---
+
 ## 🚀 分支策略 (Branch Strategy)
 
 本项目采用严格的 **“开发与分发分离”** 架构。
@@ -32,7 +46,7 @@
 **产物结构：**
 ```text
 README.md                             # 发布指引说明文件
-.agents/skills/xiaofan-persona/       # 标准高内聚 Skill 包
+xiaofan-persona/                      # 标准高内聚 Skill 包
   ├── SKILL.md                        # Skill 入口（含执行流程 + 跨域推理策略）
   ├── Prompt_System.md                # 核心人格设定（宪法 + 身份 + 世界观 + 词汇库）
   ├── canonical_principles.md            # 不可变的底层原则
@@ -40,10 +54,6 @@ README.md                             # 发布指引说明文件
   ├── build-info.json                 # 构建元数据
   └── checksums.json                  # SHA256 校验和
 ```
-
-**如何使用：**
-- **Git 方式**：运行 `git clone -b release https://github.com/tan/Xiaofan-Digital-Clone.git .agents/skills/xiaofan-persona`
-- **手动方式**：复制 `.agents/skills/xiaofan-persona/` 文件夹到你的 Agent 配置目录，将其 Markdown 文件作为核心上下文载入。
 
 ---
 

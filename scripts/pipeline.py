@@ -360,12 +360,18 @@ def deploy_to_release(commit_msg: Optional[str] = None) -> bool:
 # 小饭数字分身 (Xiaofan Digital Clone) - 开箱即用版
 
 这是已编译打包完成的**最终交付产物 (Release)**。
-任何人 Clone 本仓库的默认 release 分支后，可以直接拿走使用。
 
-## 📦 产物列表
+## 📦 安装 (Installation)
 
-- 🤖 **Agent Skill**：`.agents/skills/xiaofan-persona/` 包含完整的 Skill 定义与校验元数据（SKILL.md + Prompt_System.md + canonical_principles.md + FAILURE_MODES.md + build-info.json + checksums.json），导入任何支持 Skill 机制的 AI 客户端即可使用。
+```bash
+mkdir -p .agents/skills
+git clone --depth 1 -b release https://github.com/tan/Xiaofan-Digital-Clone.git .agents/skills/xiaofan-persona
+```
 
+### 更新 (Update)
+```bash
+git -C .agents/skills/xiaofan-persona pull
+```
 
 ---
 
