@@ -5,7 +5,7 @@
 ## 📦 安装指南 (Installation)
 
 ### 1. 项目级安装 (Project Installation)
-在当前项目根目录下运行，克隆 release 分支到 `.agents/skills/xiaofan-persona`（支持 Antigravity, agy CLI, Claude Code, Cursor 等）：
+在当前项目根目录下运行，克隆 release 分支到 `.agents/skills/xiaofan-persona`：
 ```bash
 mkdir -p .agents/skills
 git clone --depth 1 -b release https://github.com/tan/Xiaofan-Digital-Clone.git .agents/skills/xiaofan-persona
