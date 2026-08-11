@@ -40,7 +40,7 @@ PROMPT_SYSTEM_FILE= DIST_DIR / "Prompt_System.md"
 CHANGELOG_FILE    = REPO_ROOT / "CHANGELOG.md"
 
 RELEASE_DIR       = REPO_ROOT / "release"
-RELEASE_SKILL_DIR = RELEASE_DIR
+RELEASE_SKILL_DIR = RELEASE_DIR / "xiaofan-persona"
 LOCAL_SKILL_DIR   = REPO_ROOT / ".agents" / "skills" / "xiaofan-persona"
 SKILL_TEMPLATE    = REPO_ROOT / "skill_templates" / "xiaofan-persona" / "SKILL.md"
 
@@ -195,21 +195,22 @@ def build_release(
     编译 Prompt 并打包全量 Skill 到 release/ 目录，生成 build-info.json 与 checksums.json。
     """
     target_rel_dir = release_dir or RELEASE_DIR
+    target_skill_dir = target_rel_dir / "xiaofan-persona"
 
     if compile_first:
         build_prompt()
 
     if target_rel_dir.exists():
         shutil.rmtree(target_rel_dir)
-    target_rel_dir.mkdir(parents=True, exist_ok=True)
+    target_skill_dir.mkdir(parents=True, exist_ok=True)
 
-    # 复制打包文件到扁平 release 目录
-    shutil.copy(SKILL_TEMPLATE, target_rel_dir / "SKILL.md")
-    shutil.copy(PROMPT_SYSTEM_FILE, target_rel_dir / "Prompt_System.md")
-    shutil.copy(REPO_ROOT / "identity" / "canonical_principles.md", target_rel_dir / "canonical_principles.md")
-    shutil.copy(REPO_ROOT / "FAILURE_MODES.md", target_rel_dir / "FAILURE_MODES.md")
+    # 复制打包文件到 release/xiaofan-persona/ 目录
+    shutil.copy(SKILL_TEMPLATE, target_skill_dir / "SKILL.md")
+    shutil.copy(PROMPT_SYSTEM_FILE, target_skill_dir / "Prompt_System.md")
+    shutil.copy(REPO_ROOT / "identity" / "canonical_principles.md", target_skill_dir / "canonical_principles.md")
+    shutil.copy(REPO_ROOT / "FAILURE_MODES.md", target_skill_dir / "FAILURE_MODES.md")
 
-    # 生成 build-info.json
+    # 生成 build-info.json 到 xiaofan-persona 目录内部
     try:
         commit_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], cwd=REPO_ROOT).decode('utf-8').strip()
         source_branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'], cwd=REPO_ROOT).decode('utf-8').strip()
@@ -222,24 +223,24 @@ def build_release(
         "built_at": datetime.now().isoformat(),
         "source_branch": source_branch
     }
-    with open(target_rel_dir / "build-info.json", "w", encoding="utf-8") as f:
+    with open(target_skill_dir / "build-info.json", "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
 
-    # 生成 checksums.json
+    # 生成 checksums.json 到 xiaofan-persona 目录内部
     checksums = {}
-    for filepath in sorted(target_rel_dir.rglob("*")):
+    for filepath in sorted(target_skill_dir.rglob("*")):
         if filepath.is_file() and filepath.name not in ["build-info.json", "checksums.json"]:
             hasher = hashlib.sha256()
             with open(filepath, "rb") as f:
                 hasher.update(f.read())
-            rel_path = filepath.relative_to(target_rel_dir).as_posix()
+            rel_path = filepath.relative_to(target_skill_dir).as_posix()
             checksums[rel_path] = "sha256:" + hasher.hexdigest()
 
-    with open(target_rel_dir / "checksums.json", "w", encoding="utf-8") as f:
+    with open(target_skill_dir / "checksums.json", "w", encoding="utf-8") as f:
         json.dump(checksums, f, indent=2)
 
-    print(f"✅ Release 打包成功 -> {target_rel_dir}")
-    return target_rel_dir
+    print(f"✅ Release 打包成功 -> {target_skill_dir}")
+    return target_skill_dir
 
 
 # ── 3. 产物校验模块 (check_skill_package) ──────────────────────────────────────
@@ -344,12 +345,11 @@ def deploy_to_release(commit_msg: Optional[str] = None) -> bool:
         # 清空索引
         subprocess.call(['git', 'rm', '-rf', '.'], cwd=REPO_ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        # 部署全量产物及元数据到 .agents/skills/xiaofan-persona/
-        rel_target = REPO_ROOT / ".agents" / "skills" / "xiaofan-persona"
-        rel_target.mkdir(parents=True, exist_ok=True)
-        for item in RELEASE_DIR.rglob("*"):
-            if item.is_file():
-                shutil.copy(item, rel_target / item.name)
+        # 部署 xiaofan-persona/ 技能目录到 release 分支
+        rel_target = REPO_ROOT / "xiaofan-persona"
+        if rel_target.exists():
+            shutil.rmtree(rel_target)
+        shutil.copytree(RELEASE_SKILL_DIR, rel_target)
 
         # 清理临时 release/ 目录
         if RELEASE_DIR.exists():
