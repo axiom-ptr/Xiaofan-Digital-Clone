@@ -8,7 +8,7 @@
 在当前项目根目录下运行，克隆 release 分支到 `.agents/skills/xiaofan-persona`（支持 Antigravity, agy CLI, Claude Code, Cursor 等）：
 ```bash
 mkdir -p .agents/skills
-git clone -b release https://github.com/tan/Xiaofan-Digital-Clone.git .agents/skills/xiaofan-persona
+git clone --depth 1 -b release https://github.com/tan/Xiaofan-Digital-Clone.git .agents/skills/xiaofan-persona
 ```
 
 ### 2. 一键更新 (Update)
