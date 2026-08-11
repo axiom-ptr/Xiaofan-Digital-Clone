@@ -344,13 +344,14 @@ def deploy_to_release(commit_msg: Optional[str] = None) -> bool:
         # 清空索引
         subprocess.call(['git', 'rm', '-rf', '.'], cwd=REPO_ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        # 部署产物到 .agents/skills/
+        # 部署全量产物及元数据到 .agents/skills/xiaofan-persona/
         rel_target = REPO_ROOT / ".agents" / "skills" / "xiaofan-persona"
         rel_target.mkdir(parents=True, exist_ok=True)
-        for fname in REQUIRED_FILES:
-            shutil.copy(RELEASE_SKILL_DIR / fname, rel_target / fname)
+        for item in RELEASE_DIR.rglob("*"):
+            if item.is_file():
+                shutil.copy(item, rel_target / item.name)
 
-        # 清理 release/
+        # 清理临时 release/ 目录
         if RELEASE_DIR.exists():
             shutil.rmtree(RELEASE_DIR)
 
