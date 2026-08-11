@@ -1,3 +1,6 @@
 tests/*_report.md
 .env
 release/
+__pycache__/
+*.pyc
+
