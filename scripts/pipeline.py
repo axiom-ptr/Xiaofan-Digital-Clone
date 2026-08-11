@@ -40,7 +40,7 @@ PROMPT_SYSTEM_FILE= DIST_DIR / "Prompt_System.md"
 CHANGELOG_FILE    = REPO_ROOT / "CHANGELOG.md"
 
 RELEASE_DIR       = REPO_ROOT / "release"
-RELEASE_SKILL_DIR = RELEASE_DIR / "xiaofan-persona"
+RELEASE_SKILL_DIR = RELEASE_DIR
 LOCAL_SKILL_DIR   = REPO_ROOT / ".agents" / "skills" / "xiaofan-persona"
 SKILL_TEMPLATE    = REPO_ROOT / "skill_templates" / "xiaofan-persona" / "SKILL.md"
 
@@ -195,20 +195,19 @@ def build_release(
     编译 Prompt 并打包全量 Skill 到 release/ 目录，生成 build-info.json 与 checksums.json。
     """
     target_rel_dir = release_dir or RELEASE_DIR
-    target_skill_dir = target_rel_dir / "xiaofan-persona"
 
     if compile_first:
         build_prompt()
 
     if target_rel_dir.exists():
         shutil.rmtree(target_rel_dir)
-    target_skill_dir.mkdir(parents=True, exist_ok=True)
+    target_rel_dir.mkdir(parents=True, exist_ok=True)
 
-    # 复制打包文件
-    shutil.copy(SKILL_TEMPLATE, target_skill_dir / "SKILL.md")
-    shutil.copy(PROMPT_SYSTEM_FILE, target_skill_dir / "Prompt_System.md")
-    shutil.copy(REPO_ROOT / "identity" / "canonical_principles.md", target_skill_dir / "canonical_principles.md")
-    shutil.copy(REPO_ROOT / "FAILURE_MODES.md", target_skill_dir / "FAILURE_MODES.md")
+    # 复制打包文件到扁平 release 目录
+    shutil.copy(SKILL_TEMPLATE, target_rel_dir / "SKILL.md")
+    shutil.copy(PROMPT_SYSTEM_FILE, target_rel_dir / "Prompt_System.md")
+    shutil.copy(REPO_ROOT / "identity" / "canonical_principles.md", target_rel_dir / "canonical_principles.md")
+    shutil.copy(REPO_ROOT / "FAILURE_MODES.md", target_rel_dir / "FAILURE_MODES.md")
 
     # 生成 build-info.json
     try:
@@ -239,8 +238,8 @@ def build_release(
     with open(target_rel_dir / "checksums.json", "w", encoding="utf-8") as f:
         json.dump(checksums, f, indent=2)
 
-    print(f"✅ Release 打包成功 -> {target_skill_dir}")
-    return target_skill_dir
+    print(f"✅ Release 打包成功 -> {target_rel_dir}")
+    return target_rel_dir
 
 
 # ── 3. 产物校验模块 (check_skill_package) ──────────────────────────────────────
@@ -338,7 +337,7 @@ def deploy_to_release(commit_msg: Optional[str] = None) -> bool:
         # 检查 release 分支是否存在
         branch_exists = subprocess.call(['git', 'show-ref', '--verify', '--quiet', 'refs/heads/release'], cwd=REPO_ROOT) == 0
         if branch_exists:
-            subprocess.check_call(['git', 'checkout', 'release'], cwd=REPO_ROOT)
+            subprocess.check_call(['git', 'checkout', '--force', 'release'], cwd=REPO_ROOT)
         else:
             subprocess.check_call(['git', 'checkout', '--orphan', 'release'], cwd=REPO_ROOT)
 
@@ -385,7 +384,7 @@ def deploy_to_release(commit_msg: Optional[str] = None) -> bool:
 
     finally:
         # 切回 main 分支
-        subprocess.check_call(['git', 'checkout', 'main'], cwd=REPO_ROOT)
+        subprocess.check_call(['git', 'checkout', '--force', 'main'], cwd=REPO_ROOT)
 
     print("🎉 全量部署成功！当前已安全回到 'main' 分支。")
     return True

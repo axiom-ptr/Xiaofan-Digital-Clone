@@ -1,7 +1,7 @@
 # 小饭（Fan Zong）专属 System Prompt
 # ⚠️ 本文件由 scripts/pipeline.py 自动生成，请勿手动修改
 # 源模块目录: persona/ & constitution/
-# 生成时间: 2026-08-11 14:09:30
+# 生成时间: 2026-08-11 14:17:05
 # 版本: v2.1
 
 ```markdown
