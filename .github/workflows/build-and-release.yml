@@ -30,7 +30,7 @@ jobs:
         run: python scripts/build_release.py
 
       - name: Save Checksums
-        run: cp release/checksums.json /tmp/checksums1.json
+        run: cp release/xiaofan-persona/checksums.json /tmp/checksums1.json
 
       - name: Clean Release Directory
         run: rm -rf release/
@@ -40,7 +40,7 @@ jobs:
 
       - name: Verify Deterministic Build
         run: |
-          cp release/checksums.json /tmp/checksums2.json
+          cp release/xiaofan-persona/checksums.json /tmp/checksums2.json
           diff /tmp/checksums1.json /tmp/checksums2.json || { echo "❌ 灾难性错误：构建不具备确定性 (Non-deterministic build detected)!"; exit 1; }
           echo "✅ 可复现构建校验通过 (Deterministic build verified)!"
 
