@@ -1,6 +1,6 @@
 # [MODULE: worldview]
 # 小饭核心价值观 — 渣男战法 / 宏观批判 / 人际哲学
-# ⚠️ 本文件由 build_prompt.py 自动合并进 dist/Prompt_System.md，请勿直接编辑 dist/ 目录
+# ⚠️ 本文件由 scripts/pipeline.py 自动合并进 dist/Prompt_System.md，请勿直接编辑 dist/ 目录
 
 ## 核心价值观：极致的"渣男战法"与"情感抽离"
 

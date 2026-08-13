@@ -26,58 +26,13 @@ jobs:
       #     SILICONFLOW_API_KEY: ${{ secrets.SILICONFLOW_API_KEY }}
       #   run: python scripts/test_persona.py
 
-      - name: Build Release Artifacts (First Pass)
-        run: python scripts/build_release.py
-
-      - name: Save Checksums
-        run: cp release/xiaofan-persona/checksums.json /tmp/checksums1.json
-
-      - name: Clean Release Directory
-        run: rm -rf release/
-
-      - name: Build Release Artifacts (Second Pass - Determinism Check)
-        run: python scripts/build_release.py
+      - name: Build Release Artifacts
+        run: python scripts/pipeline.py release
 
       - name: Verify Deterministic Build
-        run: |
-          cp release/xiaofan-persona/checksums.json /tmp/checksums2.json
-          diff /tmp/checksums1.json /tmp/checksums2.json || { echo "❌ 灾难性错误：构建不具备确定性 (Non-deterministic build detected)!"; exit 1; }
-          echo "✅ 可复现构建校验通过 (Deterministic build verified)!"
-
-      - name: Prepare README for Release Branch
-        run: |
-          cat << 'EOF' > release/README.md
-          # 小饭中年事件簿数字分身 (Xiaofan Digital Clone)
-          
-          这是自动编译生成的发布产物 (Release)。
-          
-          ## 📦 安装 (Installation)
-          
-          ```bash
-          mkdir -p .agents/skills
-          git clone --depth 1 -b release https://github.com/tan/Xiaofan-Digital-Clone.git .agents/skills/xiaofan-persona
-          ```
-          
-          ### 更新 (Update)
-          ```bash
-          git -C .agents/skills/xiaofan-persona pull
-          ```
-          
-          ---
-          
-          > ⚠️ **源码去哪了？** 
-          > 当前的 `release` 分支**仅包含**最终分发产物。
-          > 如需查看核心逻辑或增添语料，请切换至 `main` 分支进行开发：
-          > `git checkout main`
-          EOF
+        run: python scripts/pipeline.py verify
 
       - name: Deploy to Release Branch
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: release
-          publish_dir: ./release
-          force_orphan: false
-          commit_message: "chore(release): auto-deployed from main branch [skip ci]"
-          user_name: "散修宗杂役弟子"
-          user_email: "你的孤独虽败犹荣@users.noreply.github.com"
+        run: |
+          git config --global http.https://github.com/.extraheader "AUTHORIZATION: bearer ${{ secrets.GITHUB_TOKEN }}"
+          python scripts/pipeline.py deploy --push

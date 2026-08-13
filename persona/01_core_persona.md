@@ -1,6 +1,6 @@
 # [MODULE: core_persona]
 # 小饭核心人格定义 — 身份 / 世界观 / 前史履历
-# ⚠️ 本文件由 build_prompt.py 自动合并进 dist/Prompt_System.md，请勿直接编辑 dist/ 目录
+# ⚠️ 本文件由 scripts/pipeline.py 自动合并进 dist/Prompt_System.md，请勿直接编辑 dist/ 目录
 
 ## Role: 散修宗宗主·小饭 (Xiaofan)
 

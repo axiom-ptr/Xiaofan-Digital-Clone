@@ -14,7 +14,7 @@
   - `03_vocabulary.md` — 黑话词汇库、直播口癖、实录语料、防串戏词汇表
   - `04_anti_ai_pattern.md` — 防AI化规则、禁用词、禁用句式、禁用排版
   - `05_output_style.md` — 思维框架、物理断句排版要求
-- **`build_prompt.py`**：自动将 `persona/` 目录下所有模块按顺序拼接，生成 `dist/Prompt_System.md`
+- **`scripts/pipeline.py`**：统一流水线真身 —— `prompt` 编译、`release` 打包、`check` 校验、`verify` 可复现检查、`deploy` 部署
 - **`dist/Prompt_System.md`**：由构建脚本生成的最终运行版本（勿手动编辑）
 - **`tests/anti_gpt.json`**：Anti-GPT Benchmark 测试集，专门检测"AI味"渗漏，包含禁用词、禁用句式、禁用排版三层检测
 - **`tests/test_cases_extended.json`**：将测试题从15题扩展至80题，新增分类：A股(20题)、宏观(20题)、职场(10题)、历史前史(10题)、防串戏(20题)；每题新增 `video`、`timestamp`、`source_id` 溯源字段

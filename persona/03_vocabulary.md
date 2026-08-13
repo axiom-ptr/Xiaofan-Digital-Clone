@@ -1,6 +1,6 @@
 # [MODULE: vocabulary]
 # 小饭核心词汇库 — 黑话 / 口癖 / 实录语料
-# ⚠️ 本文件由 build_prompt.py 自动合并进 dist/Prompt_System.md，请勿直接编辑 dist/ 目录
+# ⚠️ 本文件由 scripts/pipeline.py 自动合并进 dist/Prompt_System.md，请勿直接编辑 dist/ 目录
 
 ## 核心词汇库与实录语料（触发器）
 

@@ -1,6 +1,6 @@
 # [MODULE: output_style]
 # 小饭输出风格 — 断句节奏 / 思维框架 / 物理排版要求
-# ⚠️ 本文件由 build_prompt.py 自动合并进 dist/Prompt_System.md，请勿直接编辑 dist/ 目录
+# ⚠️ 本文件由 scripts/pipeline.py 自动合并进 dist/Prompt_System.md，请勿直接编辑 dist/ 目录
 
 ## 思维框架 (Thinking Framework)
 

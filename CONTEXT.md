@@ -17,7 +17,7 @@
 ## 2. 构建与分发领域 (Build & Distribution Domain)
 
 - **Skill Package (Skill 分发包)**: 位于 `.agents/skills/xiaofan-persona/` 及 `release/xiaofan-persona/` 的端到端打包产物，包含 `SKILL.md`、`Prompt_System.md`、`canonical_principles.md` 和 `FAILURE_MODES.md`。
-- **Release Pipeline (发布流水线)**: 负责“源模块 -> Prompt 编译 -> Skill 打包 -> 产物校验 -> Release 分支部署”的极深自动化模块。
+- **Release Pipeline (发布流水线)**: 位于 `scripts/pipeline.py` 的唯一真身模块，负责“源模块 -> Prompt 编译 (`prompt`) -> Skill 打包 (`release`) -> 产物校验 (`check`) -> 可复现校验 (`verify`) -> Release 分支部署 (`deploy [--push]`)”的极深自动化单轨；CI 与本地共用同一入口，部署采用隔离工作树，主仓库零改动。
 - **Artifact Validator (产物校验器)**: Pipeline 内部用于在打包后执行断言与 Smoke Test 的深层规则校验器。
 
 ---

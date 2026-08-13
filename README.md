@@ -64,7 +64,7 @@ xiaofan-persona/                      # 标准高内聚 Skill 包
 1. **绝对禁止直接修改分发产物**：永远不要修改 `release` 分支或 `.agents/skills/xiaofan-persona/` 内的内容。所有设定修改在 `persona/` 目录进行；Skill 入口流程修改去 `skill_templates/`；宏观设定补充去 `knowledge/`。根规则修改需同时更新 `identity/` 和 `constitution/`。
 2. **尊重根规则优先于语料**：`identity/canonical_principles.md` 和 `constitution/immutable_rules.md` 的优先级高于任何语料片段的表面风格。当语料片段与根规则冲突时，以根规则为准。
 3. **重构底线**：不要盲目增加架构层级。项目已回归极简的"构建 → 分发"模式，统一使用 `scripts/pipeline.py` 进行调度。
-4. **本地验证闭环**：任何修改后，必须运行 `python3 scripts/pipeline.py all` 和 `python3 scripts/check_skill_package.py`；涉及人设行为的修改，还需通过闭卷考试（`tests/TESTING.md §7`）验证人设未偏移。
+4. **本地验证闭环**：任何修改后，必须运行 `python3 scripts/pipeline.py all` 和 `python3 scripts/pipeline.py check`；涉及人设行为的修改，还需通过闭卷考试（`tests/TESTING.md §7`）验证人设未偏移。
 5. **红线校验**：在写代码或修改 Prompt 之前，先看一遍 `FAILURE_MODES.md`，确保你没有引入任何可能导致"煲鸡汤"、"排版工整"、"建议式结尾"的逻辑。
 
 ---

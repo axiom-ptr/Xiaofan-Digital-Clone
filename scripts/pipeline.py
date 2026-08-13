@@ -2,20 +2,23 @@
 """
 scripts/pipeline.py — 小饭数字分身 统一构建、发布、校验与部署流水线 (Unified Pipeline)
 ==============================================================================
-下聚并取代原分散的 build_prompt.py, scripts/build_release.py,
-scripts/check_skill_package.py 与 scripts/deploy_to_release.sh。
+本模块是构建/校验/部署的唯一真身(单入口)。原先分散的 build_prompt.py 与
+scripts/ 下各 shim (build_release.py / check_skill_package.py / deploy_to_release.sh)
+已被合并进本模块并删除。
 
 接口规范与职责：
-  1. build_prompt()       - 将 constitution/ 与 persona/*.md 编译拼接为 dist/Prompt_System.md
-  2. build_release()      - 强制编译并打包原生 Skill 至 release/xiaofan-persona/，生成 checksums/manifest
-  3. check_skill_package()- 产物合规性与静态不变性断言校验 (Single Source of Truth)
-  4. deploy_to_release()  - 同步本地镜像，安全驱动 Git 切换并部署至 release 分支
+  1. build_prompt()        - 将 constitution/ 与 persona/*.md 编译拼接为 dist/Prompt_System.md
+  2. build_release()       - 强制编译并打包原生 Skill 至 release/xiaofan-persona/，生成 checksums/manifest
+  3. check_skill_package() - 产物合规性与静态不变性断言校验 (Single Source of Truth)
+  4. verify_determinism()  - 两次独立构建比对 checksums，验证可复现性 (与时钟无关)
+  5. deploy_to_release()   - 在隔离 git 工作树中组装产物并(可选)推送 release 分支，主工作区零改动
 
 用法 (CLI):
   python3 scripts/pipeline.py prompt [--dry-run] [--diff]
   python3 scripts/pipeline.py release
-  python3 scripts/pipeline.py check
-  python3 scripts/pipeline.py deploy
+  python3 scripts/pipeline.py check [--lenient]
+  python3 scripts/pipeline.py verify
+  python3 scripts/pipeline.py deploy [--push] [-m MSG]
   python3 scripts/pipeline.py all [--deploy]
 """
 
@@ -23,6 +26,7 @@ import os
 import sys
 import json
 import shutil
+import tempfile
 import hashlib
 import difflib
 import argparse
@@ -75,6 +79,37 @@ FORBIDDEN_SKILL_REFERENCES = [
     "dist/Prompt_System.md",
     "identity/canonical_principles.md",
 ]
+
+RELEASE_README_TEMPLATE = """\
+# 小饭数字分身 (Xiaofan Digital Clone) - 开箱即用版
+
+这是已编译打包完成的**最终交付产物 (Release)**。
+
+## 📦 安装 (Installation)
+
+```bash
+mkdir -p .agents/skills
+git clone --depth 1 -b release https://github.com/tan/Xiaofan-Digital-Clone.git .agents/skills/xiaofan-persona
+```
+
+### 更新 (Update)
+```bash
+git -C .agents/skills/xiaofan-persona pull
+```
+
+---
+
+> ⚠️ **开发者注意 (For Developers)**
+> 当前的 `release` 分支**仅包含**由脚本编译后的“死产物”，用于对外分发。
+> 如果你需要查看和修改底层源码（如 `persona/` 模块）、增加测试集或是维护 API 测试脚本，**请务必切换到 `main` 分支**：
+>
+> ```bash
+> git checkout main
+> ```
+"""
+
+# 可复现构建校验用的固定时间戳:两次独立构建必须与时钟无关、内容逐字节一致
+DETERMINISM_TIMESTAMP = "deterministic-verify"
 
 REQUIRED_SKILL_MARKERS = [
     "Scope Rule",
@@ -134,7 +169,8 @@ def strip_module_comment(content: str) -> str:
 def build_prompt(
     output_file: Optional[Path] = None,
     dry_run: bool = False,
-    diff: bool = False
+    diff: bool = False,
+    timestamp_override: Optional[str] = None
 ) -> str:
     """
     按顺序编译 constitution/ 与 persona/ 模块，生成 dist/Prompt_System.md。
@@ -159,7 +195,7 @@ def build_prompt(
 
     body = "\n\n---\n\n".join(sections)
     header = HEADER_TEMPLATE.format(
-        timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        timestamp=timestamp_override or datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         version=load_version()
     )
     result = header + body + "\n" + FOOTER
@@ -189,16 +225,19 @@ def build_prompt(
 # ── 2. Release 打包模块 (build_release) ───────────────────────────────────────
 def build_release(
     release_dir: Optional[Path] = None,
-    compile_first: bool = True
+    compile_first: bool = True,
+    prompt_file: Optional[Path] = None,
+    timestamp_override: Optional[str] = None
 ) -> Path:
     """
     编译 Prompt 并打包全量 Skill 到 release/ 目录，生成 build-info.json 与 checksums.json。
     """
     target_rel_dir = release_dir or RELEASE_DIR
     target_skill_dir = target_rel_dir / "xiaofan-persona"
+    src_prompt = prompt_file or PROMPT_SYSTEM_FILE
 
     if compile_first:
-        build_prompt()
+        build_prompt(output_file=src_prompt, timestamp_override=timestamp_override)
 
     if target_rel_dir.exists():
         shutil.rmtree(target_rel_dir)
@@ -206,7 +245,7 @@ def build_release(
 
     # 复制打包文件到 release/xiaofan-persona/ 目录
     shutil.copy(SKILL_TEMPLATE, target_skill_dir / "SKILL.md")
-    shutil.copy(PROMPT_SYSTEM_FILE, target_skill_dir / "Prompt_System.md")
+    shutil.copy(src_prompt, target_skill_dir / "Prompt_System.md")
     shutil.copy(REPO_ROOT / "identity" / "canonical_principles.md", target_skill_dir / "canonical_principles.md")
     shutil.copy(REPO_ROOT / "FAILURE_MODES.md", target_skill_dir / "FAILURE_MODES.md")
 
@@ -307,93 +346,135 @@ def check_skill_package(strict: bool = True) -> bool:
     return True
 
 
+# ── 3.5 可复现构建校验模块 (verify_determinism) ──────────────────────────────
+def verify_determinism() -> bool:
+    """
+    两次独立构建到临时目录,比对 checksums.json,验证构建可复现性。
+
+    与时钟无关:两次构建均使用固定时间戳(DETERMINISM_TIMESTAMP),
+    校验的是「源模块 -> 产物」映射的确定性,而非恰好同一秒内完成。
+    """
+    print("⚙️ 可复现构建校验 (deterministic build verification)...")
+    collected = []
+    for i in range(2):
+        with tempfile.TemporaryDirectory(prefix="xiaofan-verify-") as tmp:
+            prompt_file = Path(tmp) / f"prompt_{i}.md"
+            skill_dir = build_release(
+                release_dir=Path(tmp) / f"release-{i}",
+                compile_first=True,
+                prompt_file=prompt_file,
+                timestamp_override=DETERMINISM_TIMESTAMP,
+            )
+            csum_path = skill_dir / "checksums.json"
+            if not csum_path.is_file():
+                raise ReleaseBuildError("缺少 checksums.json,无法进行确定性校验")
+            collected.append(csum_path.read_text(encoding="utf-8").strip())
+
+    if collected[0] == collected[1]:
+        print("✅ 可复现构建校验通过 (deterministic build verified)")
+        return True
+
+    print("❌ 灾难性错误:构建不具备确定性 (Non-deterministic build detected)!差异如下:", file=sys.stderr)
+    diff_lines = list(difflib.unified_diff(
+        collected[0].splitlines(), collected[1].splitlines(),
+        fromfile="checksums #1", tofile="checksums #2",
+    ))
+    for line in diff_lines:
+        print(line, file=sys.stderr)
+    raise ReleaseBuildError("构建不具备确定性 (Non-deterministic build detected)")
+
+
 # ── 4. 分支部署模块 (deploy_to_release) ───────────────────────────────────────
-def deploy_to_release(commit_msg: Optional[str] = None) -> bool:
+def deploy_to_release(commit_msg: Optional[str] = None, push: bool = False) -> bool:
     """
-    打包并部署至 release 分支及同步本地镜像。
+    组装 release 产物并(可选)推送至远程 release 分支,同步本地 .agents 镜像。
+
+    采用「隔离工作树」策略:在临时目录内 git init 并探测/fetch 远程分支,
+    组装产物后 commit;主仓库不做任何分支切换、清空或历史改写。
+    仅当 push=True 时执行推送(CI 里 --push,本地默认只组装)。
+    注:dist/、release/、.agents/ 等构建缓存目录仍按 build_release 语义被重建。
     """
-    # 检查当前 Git 分支
+    # 1. 分支门禁
     try:
         current_branch = subprocess.check_output(['git', 'branch', '--show-current'], cwd=REPO_ROOT).decode('utf-8').strip()
     except Exception as e:
         raise DeployError(f"获取 Git 分支失败: {e}")
-
     if current_branch != "main":
         raise DeployError(f"必须在 'main' 分支执行部署。当前分支: '{current_branch}'")
 
+    # 2. 构建 + 同步本地镜像 + 离线校验
     print("🔨 开始执行全量 Pipeline 打包...")
     build_release(compile_first=True)
-
-    # 同步至本地 .agents/skills/
     LOCAL_SKILL_DIR.mkdir(parents=True, exist_ok=True)
     for fname in REQUIRED_FILES:
         shutil.copy(RELEASE_SKILL_DIR / fname, LOCAL_SKILL_DIR / fname)
     print(f"✅ 已同步至本地 Agent 镜像: {LOCAL_SKILL_DIR}")
-
-    # 离线校验
     check_skill_package(strict=True)
 
-    print("🌿 准备提交至 'release' 分支...")
+    # 3. 读取远端信息与提交身份
     try:
-        # 检查 release 分支是否存在
-        branch_exists = subprocess.call(['git', 'show-ref', '--verify', '--quiet', 'refs/heads/release'], cwd=REPO_ROOT) == 0
-        if branch_exists:
-            subprocess.check_call(['git', 'checkout', '--force', 'release'], cwd=REPO_ROOT)
+        remote_url = subprocess.check_output(['git', 'config', '--get', 'remote.origin.url'], cwd=REPO_ROOT).decode('utf-8').strip()
+    except Exception:
+        raise DeployError("无法获取 remote.origin.url,请先配置远程仓库 (git remote add origin <url>)")
+    msg = commit_msg or "chore(release): deploy automated release artifacts to release branch"
+    bot_name = os.environ.get("RELEASE_BOT_NAME", "Xiaofan Release Bot")
+    bot_email = os.environ.get("RELEASE_BOT_EMAIL", "release-bot@users.noreply.github.com")
+
+    # 4. 隔离工作树组装
+    with tempfile.TemporaryDirectory(prefix="xiaofan-release-") as tmp:
+        work = Path(tmp)
+        subprocess.check_call(['git', 'init', '-q'], cwd=work)
+        subprocess.check_call(['git', 'remote', 'add', 'origin', remote_url], cwd=work)
+
+        # 显式探测远端 release 分支(ls-remote --exit-code:0=存在 / 2=不存在 / 其他=通信失败)
+        # 通信失败一律中止,绝不把网络/认证错误误判为「分支不存在」去强推覆盖远程。
+        lsrc = subprocess.call(['git', 'ls-remote', '--exit-code', '--heads', 'origin', 'release'], cwd=work)
+        if lsrc == 0:
+            try:
+                subprocess.check_call(
+                    ['git', 'fetch', '--depth', '1', 'origin', 'release:refs/remotes/origin/release'], cwd=work)
+                subprocess.check_call(
+                    ['git', 'checkout', '-f', '-B', 'release', 'refs/remotes/origin/release'], cwd=work)
+            except subprocess.CalledProcessError as e:
+                raise DeployError(f"无法载入远程 release 分支历史: {e}")
+            print("🌿 已载入远程 release 分支历史")
+        elif lsrc == 2:
+            subprocess.check_call(['git', 'checkout', '--orphan', 'release'], cwd=work)
+            print("🌿 release 分支不存在(远端确认),创建孤儿分支")
         else:
-            subprocess.check_call(['git', 'checkout', '--orphan', 'release'], cwd=REPO_ROOT)
+            raise DeployError(f"无法与远程仓库通信 (git ls-remote 退出码 {lsrc}),中止部署以避免误判覆盖")
 
-        # 清空索引
-        subprocess.call(['git', 'rm', '-rf', '.'], cwd=REPO_ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # 清空工作树中除 .git 外的全部内容
+        for item in work.iterdir():
+            if item.name == ".git":
+                continue
+            if item.is_dir():
+                shutil.rmtree(item, ignore_errors=True)
+            else:
+                item.unlink()
 
-        # 部署 xiaofan-persona/ 技能目录到 release 分支
-        rel_target = REPO_ROOT / "xiaofan-persona"
-        if rel_target.exists():
-            shutil.rmtree(rel_target)
-        shutil.copytree(RELEASE_SKILL_DIR, rel_target)
+        # 组装产物树:xiaofan-persona/ + README.md
+        shutil.copytree(RELEASE_SKILL_DIR, work / "xiaofan-persona")
+        (work / "README.md").write_text(RELEASE_README_TEMPLATE, encoding="utf-8")
 
-        # 清理临时 release/ 目录
-        if RELEASE_DIR.exists():
-            shutil.rmtree(RELEASE_DIR)
+        subprocess.check_call(['git', 'add', '.'], cwd=work)
+        subprocess.check_call(
+            ['git', '-c', f'user.name={bot_name}', '-c', f'user.email={bot_email}',
+             'commit', '-q', '-m', msg], cwd=work)
+        print(f"✅ 产物已提交 (release 工作树): {msg}")
 
-        # 写入 release README.md
-        release_readme = """\
-# 小饭数字分身 (Xiaofan Digital Clone) - 开箱即用版
+        if push:
+            try:
+                # 统一普通 push:远端无 release 时创建成功,已有时 fast-forward 追加;
+                # 若其间远端被并发改写,会被 non-fast-forward 拒绝 —— 宁可失败也不强推覆盖。
+                subprocess.check_call(['git', 'push', 'origin', 'release'], cwd=work)
+            except subprocess.CalledProcessError as e:
+                raise DeployError(f"推送 release 分支失败(不覆盖远程,请人工检查): {e}")
+            print("🚀 已推送至远程 release 分支")
+        else:
+            print("⚠️ 未指定 --push,跳过推送(仅完成组装与提交)")
 
-这是已编译打包完成的**最终交付产物 (Release)**。
-
-## 📦 安装 (Installation)
-
-```bash
-mkdir -p .agents/skills
-git clone --depth 1 -b release https://github.com/tan/Xiaofan-Digital-Clone.git .agents/skills/xiaofan-persona
-```
-
-### 更新 (Update)
-```bash
-git -C .agents/skills/xiaofan-persona pull
-```
-
----
-
-> ⚠️ **开发者注意 (For Developers)** 
-> 当前的 `release` 分支**仅包含**由脚本编译后的“死产物”，用于对外分发。
-> 如果你需要查看和修改底层源码（如 `persona/` 模块）、增加测试集或是维护 API 测试脚本，**请务必切换到 `main` 分支**：
-> 
-> ```bash
-> git checkout main
-> ```
-"""
-        (REPO_ROOT / "README.md").write_text(release_readme, encoding="utf-8")
-
-        msg = commit_msg or "chore(release): deploy automated release artifacts to release branch"
-        subprocess.check_call(['git', 'add', '.'], cwd=REPO_ROOT)
-        subprocess.call(['git', 'commit', '-m', msg], cwd=REPO_ROOT)
-
-    finally:
-        # 切回 main 分支
-        subprocess.check_call(['git', 'checkout', '--force', 'main'], cwd=REPO_ROOT)
-
-    print("🎉 全量部署成功！当前已安全回到 'main' 分支。")
+    print("🎉 部署流程完成,主工作区未受影响。")
     return True
 
 
@@ -414,13 +495,18 @@ def main():
     check_parser = subparsers.add_parser("check", help="校验 Skill 包完整性与合规 Marker")
     check_parser.add_argument("--lenient", action="store_true", help="宽容模式（不抛异常）")
 
+    # verify
+    subparsers.add_parser("verify", help="两次独立构建比对 checksums,验证可复现性")
+
     # deploy
-    deploy_parser = subparsers.add_parser("deploy", help="打包并发布至 release Git 分支")
+    deploy_parser = subparsers.add_parser("deploy", help="组装产物并发布至 release 分支")
     deploy_parser.add_argument("--message", "-m", type=str, help="Commit 提交信息")
+    deploy_parser.add_argument("--push", action="store_true", help="推送至远程 release 分支(默认仅组装)")
 
     # all
     all_parser = subparsers.add_parser("all", help="端到端运行: 编译 -> 打包 -> 校验 (可选 --deploy)")
-    all_parser.add_argument("--deploy", action="store_true", help="包含发布至 release 分支")
+    all_parser.add_argument("--deploy", action="store_true", help="包含组装 release 产物(需配合 --push 才推送)")
+    all_parser.add_argument("--push", action="store_true", help="deploy 时推送至远程 release 分支(需配合 --deploy)")
 
     args = parser.parse_args()
 
@@ -435,13 +521,15 @@ def main():
             build_release()
         elif args.command == "check":
             check_skill_package(strict=not args.lenient)
+        elif args.command == "verify":
+            verify_determinism()
         elif args.command == "deploy":
-            deploy_to_release(commit_msg=args.message)
+            deploy_to_release(commit_msg=args.message, push=args.push)
         elif args.command == "all":
             build_release(compile_first=True)
             check_skill_package(strict=True)
             if args.deploy:
-                deploy_to_release()
+                deploy_to_release(push=args.push)
     except PipelineError as exc:
         print(f"\n❌ Pipeline 执行异常: {exc}", file=sys.stderr)
         sys.exit(1)

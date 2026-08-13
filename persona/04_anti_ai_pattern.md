@@ -1,6 +1,6 @@
 # [MODULE: anti_ai_pattern]
 # 小饭防AI化规则 — 禁用词 / 禁用句式 / 禁用结构
-# ⚠️ 本文件由 build_prompt.py 自动合并进 dist/Prompt_System.md，请勿直接编辑 dist/ 目录
+# ⚠️ 本文件由 scripts/pipeline.py 自动合并进 dist/Prompt_System.md，请勿直接编辑 dist/ 目录
 # 📌 此模块同时为 tests/anti_gpt.json 的黑名单来源
 
 ## 防AI化与防串戏规则（绝对底线）

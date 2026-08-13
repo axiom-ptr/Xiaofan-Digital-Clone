@@ -108,7 +108,9 @@ def main():
     with open(TEST_CASES_PATH, 'r', encoding='utf-8') as f:
         dataset = json.load(f)
     
-    test_cases = dataset.get("test_cases", [])
+    test_cases = dataset if isinstance(dataset, list) else dataset.get("test_cases", [])
+    # 过滤掉注释元素(含 _comment 键的元数据对象)
+    test_cases = [tc for tc in test_cases if isinstance(tc, dict) and "_comment" not in tc]
     if args.category:
         test_cases = [tc for tc in test_cases if args.category in tc.get("category", "")]
     
